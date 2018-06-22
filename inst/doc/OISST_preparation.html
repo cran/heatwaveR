@@ -1,226 +1,92 @@
 <!DOCTYPE html>
-<html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 
-<title>Overview</title>
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
 
-<script type="text/javascript">
-window.onload = function() {
-  var imgs = document.getElementsByTagName('img'), i, img;
-  for (i = 0; i < imgs.length; i++) {
-    img = imgs[i];
-    // center an image if it is the only element of its parent
-    if (img.parentElement.childElementCount === 1)
-      img.parentElement.style.textAlign = 'center';
-  }
-};
-</script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-<!-- Styles for R syntax highlighter -->
+<meta name="author" content="AJ Smit" />
+
+<meta name="date" content="2018-06-22" />
+
+<title>Retrieval and processing of OISST data</title>
+
+
+
+<style type="text/css">code{white-space: pre;}</style>
 <style type="text/css">
-   pre .operator,
-   pre .paren {
-     color: rgb(104, 118, 135)
-   }
-
-   pre .literal {
-     color: #990073
-   }
-
-   pre .number {
-     color: #099;
-   }
-
-   pre .comment {
-     color: #998;
-     font-style: italic
-   }
-
-   pre .keyword {
-     color: #900;
-     font-weight: bold
-   }
-
-   pre .identifier {
-     color: rgb(0, 0, 0);
-   }
-
-   pre .string {
-     color: #d14;
-   }
-</style>
-
-<!-- R syntax highlighter -->
-<script type="text/javascript">
-var hljs=new function(){function m(p){return p.replace(/&/gm,"&amp;").replace(/</gm,"&lt;")}function f(r,q,p){return RegExp(q,"m"+(r.cI?"i":"")+(p?"g":""))}function b(r){for(var p=0;p<r.childNodes.length;p++){var q=r.childNodes[p];if(q.nodeName=="CODE"){return q}if(!(q.nodeType==3&&q.nodeValue.match(/\s+/))){break}}}function h(t,s){var p="";for(var r=0;r<t.childNodes.length;r++){if(t.childNodes[r].nodeType==3){var q=t.childNodes[r].nodeValue;if(s){q=q.replace(/\n/g,"")}p+=q}else{if(t.childNodes[r].nodeName=="BR"){p+="\n"}else{p+=h(t.childNodes[r])}}}if(/MSIE [678]/.test(navigator.userAgent)){p=p.replace(/\r/g,"\n")}return p}function a(s){var r=s.className.split(/\s+/);r=r.concat(s.parentNode.className.split(/\s+/));for(var q=0;q<r.length;q++){var p=r[q].replace(/^language-/,"");if(e[p]){return p}}}function c(q){var p=[];(function(s,t){for(var r=0;r<s.childNodes.length;r++){if(s.childNodes[r].nodeType==3){t+=s.childNodes[r].nodeValue.length}else{if(s.childNodes[r].nodeName=="BR"){t+=1}else{if(s.childNodes[r].nodeType==1){p.push({event:"start",offset:t,node:s.childNodes[r]});t=arguments.callee(s.childNodes[r],t);p.push({event:"stop",offset:t,node:s.childNodes[r]})}}}}return t})(q,0);return p}function k(y,w,x){var q=0;var z="";var s=[];function u(){if(y.length&&w.length){if(y[0].offset!=w[0].offset){return(y[0].offset<w[0].offset)?y:w}else{return w[0].event=="start"?y:w}}else{return y.length?y:w}}function t(D){var A="<"+D.nodeName.toLowerCase();for(var B=0;B<D.attributes.length;B++){var C=D.attributes[B];A+=" "+C.nodeName.toLowerCase();if(C.value!==undefined&&C.value!==false&&C.value!==null){A+='="'+m(C.value)+'"'}}return A+">"}while(y.length||w.length){var v=u().splice(0,1)[0];z+=m(x.substr(q,v.offset-q));q=v.offset;if(v.event=="start"){z+=t(v.node);s.push(v.node)}else{if(v.event=="stop"){var p,r=s.length;do{r--;p=s[r];z+=("</"+p.nodeName.toLowerCase()+">")}while(p!=v.node);s.splice(r,1);while(r<s.length){z+=t(s[r]);r++}}}}return z+m(x.substr(q))}function j(){function q(x,y,v){if(x.compiled){return}var u;var s=[];if(x.k){x.lR=f(y,x.l||hljs.IR,true);for(var w in x.k){if(!x.k.hasOwnProperty(w)){continue}if(x.k[w] instanceof Object){u=x.k[w]}else{u=x.k;w="keyword"}for(var r in u){if(!u.hasOwnProperty(r)){continue}x.k[r]=[w,u[r]];s.push(r)}}}if(!v){if(x.bWK){x.b="\\b("+s.join("|")+")\\s"}x.bR=f(y,x.b?x.b:"\\B|\\b");if(!x.e&&!x.eW){x.e="\\B|\\b"}if(x.e){x.eR=f(y,x.e)}}if(x.i){x.iR=f(y,x.i)}if(x.r===undefined){x.r=1}if(!x.c){x.c=[]}x.compiled=true;for(var t=0;t<x.c.length;t++){if(x.c[t]=="self"){x.c[t]=x}q(x.c[t],y,false)}if(x.starts){q(x.starts,y,false)}}for(var p in e){if(!e.hasOwnProperty(p)){continue}q(e[p].dM,e[p],true)}}function d(B,C){if(!j.called){j();j.called=true}function q(r,M){for(var L=0;L<M.c.length;L++){if((M.c[L].bR.exec(r)||[null])[0]==r){return M.c[L]}}}function v(L,r){if(D[L].e&&D[L].eR.test(r)){return 1}if(D[L].eW){var M=v(L-1,r);return M?M+1:0}return 0}function w(r,L){return L.i&&L.iR.test(r)}function K(N,O){var M=[];for(var L=0;L<N.c.length;L++){M.push(N.c[L].b)}var r=D.length-1;do{if(D[r].e){M.push(D[r].e)}r--}while(D[r+1].eW);if(N.i){M.push(N.i)}return f(O,M.join("|"),true)}function p(M,L){var N=D[D.length-1];if(!N.t){N.t=K(N,E)}N.t.lastIndex=L;var r=N.t.exec(M);return r?[M.substr(L,r.index-L),r[0],false]:[M.substr(L),"",true]}function z(N,r){var L=E.cI?r[0].toLowerCase():r[0];var M=N.k[L];if(M&&M instanceof Array){return M}return false}function F(L,P){L=m(L);if(!P.k){return L}var r="";var O=0;P.lR.lastIndex=0;var M=P.lR.exec(L);while(M){r+=L.substr(O,M.index-O);var N=z(P,M);if(N){x+=N[1];r+='<span class="'+N[0]+'">'+M[0]+"</span>"}else{r+=M[0]}O=P.lR.lastIndex;M=P.lR.exec(L)}return r+L.substr(O,L.length-O)}function J(L,M){if(M.sL&&e[M.sL]){var r=d(M.sL,L);x+=r.keyword_count;return r.value}else{return F(L,M)}}function I(M,r){var L=M.cN?'<span class="'+M.cN+'">':"";if(M.rB){y+=L;M.buffer=""}else{if(M.eB){y+=m(r)+L;M.buffer=""}else{y+=L;M.buffer=r}}D.push(M);A+=M.r}function G(N,M,Q){var R=D[D.length-1];if(Q){y+=J(R.buffer+N,R);return false}var P=q(M,R);if(P){y+=J(R.buffer+N,R);I(P,M);return P.rB}var L=v(D.length-1,M);if(L){var O=R.cN?"</span>":"";if(R.rE){y+=J(R.buffer+N,R)+O}else{if(R.eE){y+=J(R.buffer+N,R)+O+m(M)}else{y+=J(R.buffer+N+M,R)+O}}while(L>1){O=D[D.length-2].cN?"</span>":"";y+=O;L--;D.length--}var r=D[D.length-1];D.length--;D[D.length-1].buffer="";if(r.starts){I(r.starts,"")}return R.rE}if(w(M,R)){throw"Illegal"}}var E=e[B];var D=[E.dM];var A=0;var x=0;var y="";try{var s,u=0;E.dM.buffer="";do{s=p(C,u);var t=G(s[0],s[1],s[2]);u+=s[0].length;if(!t){u+=s[1].length}}while(!s[2]);if(D.length>1){throw"Illegal"}return{r:A,keyword_count:x,value:y}}catch(H){if(H=="Illegal"){return{r:0,keyword_count:0,value:m(C)}}else{throw H}}}function g(t){var p={keyword_count:0,r:0,value:m(t)};var r=p;for(var q in e){if(!e.hasOwnProperty(q)){continue}var s=d(q,t);s.language=q;if(s.keyword_count+s.r>r.keyword_count+r.r){r=s}if(s.keyword_count+s.r>p.keyword_count+p.r){r=p;p=s}}if(r.language){p.second_best=r}return p}function i(r,q,p){if(q){r=r.replace(/^((<[^>]+>|\t)+)/gm,function(t,w,v,u){return w.replace(/\t/g,q)})}if(p){r=r.replace(/\n/g,"<br>")}return r}function n(t,w,r){var x=h(t,r);var v=a(t);var y,s;if(v){y=d(v,x)}else{return}var q=c(t);if(q.length){s=document.createElement("pre");s.innerHTML=y.value;y.value=k(q,c(s),x)}y.value=i(y.value,w,r);var u=t.className;if(!u.match("(\\s|^)(language-)?"+v+"(\\s|$)")){u=u?(u+" "+v):v}if(/MSIE [678]/.test(navigator.userAgent)&&t.tagName=="CODE"&&t.parentNode.tagName=="PRE"){s=t.parentNode;var p=document.createElement("div");p.innerHTML="<pre><code>"+y.value+"</code></pre>";t=p.firstChild.firstChild;p.firstChild.cN=s.cN;s.parentNode.replaceChild(p.firstChild,s)}else{t.innerHTML=y.value}t.className=u;t.result={language:v,kw:y.keyword_count,re:y.r};if(y.second_best){t.second_best={language:y.second_best.language,kw:y.second_best.keyword_count,re:y.second_best.r}}}function o(){if(o.called){return}o.called=true;var r=document.getElementsByTagName("pre");for(var p=0;p<r.length;p++){var q=b(r[p]);if(q){n(q,hljs.tabReplace)}}}function l(){if(window.addEventListener){window.addEventListener("DOMContentLoaded",o,false);window.addEventListener("load",o,false)}else{if(window.attachEvent){window.attachEvent("onload",o)}else{window.onload=o}}}var e={};this.LANGUAGES=e;this.highlight=d;this.highlightAuto=g;this.fixMarkup=i;this.highlightBlock=n;this.initHighlighting=o;this.initHighlightingOnLoad=l;this.IR="[a-zA-Z][a-zA-Z0-9_]*";this.UIR="[a-zA-Z_][a-zA-Z0-9_]*";this.NR="\\b\\d+(\\.\\d+)?";this.CNR="\\b(0[xX][a-fA-F0-9]+|(\\d+(\\.\\d*)?|\\.\\d+)([eE][-+]?\\d+)?)";this.BNR="\\b(0b[01]+)";this.RSR="!|!=|!==|%|%=|&|&&|&=|\\*|\\*=|\\+|\\+=|,|\\.|-|-=|/|/=|:|;|<|<<|<<=|<=|=|==|===|>|>=|>>|>>=|>>>|>>>=|\\?|\\[|\\{|\\(|\\^|\\^=|\\||\\|=|\\|\\||~";this.ER="(?![\\s\\S])";this.BE={b:"\\\\.",r:0};this.ASM={cN:"string",b:"'",e:"'",i:"\\n",c:[this.BE],r:0};this.QSM={cN:"string",b:'"',e:'"',i:"\\n",c:[this.BE],r:0};this.CLCM={cN:"comment",b:"//",e:"$"};this.CBLCLM={cN:"comment",b:"/\\*",e:"\\*/"};this.HCM={cN:"comment",b:"#",e:"$"};this.NM={cN:"number",b:this.NR,r:0};this.CNM={cN:"number",b:this.CNR,r:0};this.BNM={cN:"number",b:this.BNR,r:0};this.inherit=function(r,s){var p={};for(var q in r){p[q]=r[q]}if(s){for(var q in s){p[q]=s[q]}}return p}}();hljs.LANGUAGES.cpp=function(){var a={keyword:{"false":1,"int":1,"float":1,"while":1,"private":1,"char":1,"catch":1,"export":1,virtual:1,operator:2,sizeof:2,dynamic_cast:2,typedef:2,const_cast:2,"const":1,struct:1,"for":1,static_cast:2,union:1,namespace:1,unsigned:1,"long":1,"throw":1,"volatile":2,"static":1,"protected":1,bool:1,template:1,mutable:1,"if":1,"public":1,friend:2,"do":1,"return":1,"goto":1,auto:1,"void":2,"enum":1,"else":1,"break":1,"new":1,extern:1,using:1,"true":1,"class":1,asm:1,"case":1,typeid:1,"short":1,reinterpret_cast:2,"default":1,"double":1,register:1,explicit:1,signed:1,typename:1,"try":1,"this":1,"switch":1,"continue":1,wchar_t:1,inline:1,"delete":1,alignof:1,char16_t:1,char32_t:1,constexpr:1,decltype:1,noexcept:1,nullptr:1,static_assert:1,thread_local:1,restrict:1,_Bool:1,complex:1},built_in:{std:1,string:1,cin:1,cout:1,cerr:1,clog:1,stringstream:1,istringstream:1,ostringstream:1,auto_ptr:1,deque:1,list:1,queue:1,stack:1,vector:1,map:1,set:1,bitset:1,multiset:1,multimap:1,unordered_set:1,unordered_map:1,unordered_multiset:1,unordered_multimap:1,array:1,shared_ptr:1}};return{dM:{k:a,i:"</",c:[hljs.CLCM,hljs.CBLCLM,hljs.QSM,{cN:"string",b:"'\\\\?.",e:"'",i:"."},{cN:"number",b:"\\b(\\d+(\\.\\d*)?|\\.\\d+)(u|U|l|L|ul|UL|f|F)"},hljs.CNM,{cN:"preprocessor",b:"#",e:"$"},{cN:"stl_container",b:"\\b(deque|list|queue|stack|vector|map|set|bitset|multiset|multimap|unordered_map|unordered_set|unordered_multiset|unordered_multimap|array)\\s*<",e:">",k:a,r:10,c:["self"]}]}}}();hljs.LANGUAGES.r={dM:{c:[hljs.HCM,{cN:"number",b:"\\b0[xX][0-9a-fA-F]+[Li]?\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\b\\d+(?:[eE][+\\-]?\\d*)?L\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\b\\d+\\.(?!\\d)(?:i\\b)?",e:hljs.IMMEDIATE_RE,r:1},{cN:"number",b:"\\b\\d+(?:\\.\\d*)?(?:[eE][+\\-]?\\d*)?i?\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\.\\d+(?:[eE][+\\-]?\\d*)?i?\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"keyword",b:"(?:tryCatch|library|setGeneric|setGroupGeneric)\\b",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\.\\.\\.",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\.\\.\\d+(?![\\w.])",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\b(?:function)",e:hljs.IMMEDIATE_RE,r:2},{cN:"keyword",b:"(?:if|in|break|next|repeat|else|for|return|switch|while|try|stop|warning|require|attach|detach|source|setMethod|setClass)\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"literal",b:"(?:NA|NA_integer_|NA_real_|NA_character_|NA_complex_)\\b",e:hljs.IMMEDIATE_RE,r:10},{cN:"literal",b:"(?:NULL|TRUE|FALSE|T|F|Inf|NaN)\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"identifier",b:"[a-zA-Z.][a-zA-Z0-9._]*\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"operator",b:"<\\-(?!\\s*\\d)",e:hljs.IMMEDIATE_RE,r:2},{cN:"operator",b:"\\->|<\\-",e:hljs.IMMEDIATE_RE,r:1},{cN:"operator",b:"%%|~",e:hljs.IMMEDIATE_RE},{cN:"operator",b:">=|<=|==|!=|\\|\\||&&|=|\\+|\\-|\\*|/|\\^|>|<|!|&|\\||\\$|:",e:hljs.IMMEDIATE_RE,r:0},{cN:"operator",b:"%",e:"%",i:"\\n",r:1},{cN:"identifier",b:"`",e:"`",r:0},{cN:"string",b:'"',e:'"',c:[hljs.BE],r:0},{cN:"string",b:"'",e:"'",c:[hljs.BE],r:0},{cN:"paren",b:"[[({\\])}]",e:hljs.IMMEDIATE_RE,r:0}]}};
-hljs.initHighlightingOnLoad();
-</script>
-
-
-
-<style type="text/css">
-body, td {
-   font-family: sans-serif;
-   background-color: white;
-   font-size: 13px;
-}
-
-body {
-  max-width: 800px;
-  margin: auto;
-  padding: 1em;
-  line-height: 20px;
-}
-
-tt, code, pre {
-   font-family: 'DejaVu Sans Mono', 'Droid Sans Mono', 'Lucida Console', Consolas, Monaco, monospace;
-}
-
-h1 {
-   font-size:2.2em;
-}
-
-h2 {
-   font-size:1.8em;
-}
-
-h3 {
-   font-size:1.4em;
-}
-
-h4 {
-   font-size:1.0em;
-}
-
-h5 {
-   font-size:0.9em;
-}
-
-h6 {
-   font-size:0.8em;
-}
-
-a:visited {
-   color: rgb(50%, 0%, 50%);
-}
-
-pre, img {
-  max-width: 100%;
-}
-pre {
-  overflow-x: auto;
-}
-pre code {
-   display: block; padding: 0.5em;
-}
-
-code {
-  font-size: 92%;
-  border: 1px solid #ccc;
-}
-
-code[class] {
-  background-color: #F8F8F8;
-}
-
-table, td, th {
-  border: none;
-}
-
-blockquote {
-   color:#666666;
-   margin:0;
-   padding-left: 1em;
-   border-left: 0.5em #EEE solid;
-}
-
-hr {
-   height: 0px;
-   border-bottom: none;
-   border-top-width: thin;
-   border-top-style: dotted;
-   border-top-color: #999999;
-}
-
-@media print {
-   * {
-      background: transparent !important;
-      color: black !important;
-      filter:none !important;
-      -ms-filter: none !important;
-   }
-
-   body {
-      font-size:12pt;
-      max-width:100%;
-   }
-
-   a, a:visited {
-      text-decoration: underline;
-   }
-
-   hr {
-      visibility: hidden;
-      page-break-before: always;
-   }
-
-   pre, blockquote {
-      padding-right: 1em;
-      page-break-inside: avoid;
-   }
-
-   tr, img {
-      page-break-inside: avoid;
-   }
-
-   img {
-      max-width: 100% !important;
-   }
-
-   @page :left {
-      margin: 15mm 20mm 15mm 10mm;
-   }
-
-   @page :right {
-      margin: 15mm 10mm 15mm 20mm;
-   }
-
-   p, h2, h3 {
-      orphans: 3; widows: 3;
-   }
-
-   h2, h3 {
-      page-break-after: avoid;
-   }
-}
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
 </style>
 
 
+
+<link href="data:text/css;charset=utf-8,body%20%7B%0Abackground%2Dcolor%3A%20%23fff%3B%0Amargin%3A%201em%20auto%3B%0Amax%2Dwidth%3A%20700px%3B%0Aoverflow%3A%20visible%3B%0Apadding%2Dleft%3A%202em%3B%0Apadding%2Dright%3A%202em%3B%0Afont%2Dfamily%3A%20%22Open%20Sans%22%2C%20%22Helvetica%20Neue%22%2C%20Helvetica%2C%20Arial%2C%20sans%2Dserif%3B%0Afont%2Dsize%3A%2014px%3B%0Aline%2Dheight%3A%201%2E35%3B%0A%7D%0A%23header%20%7B%0Atext%2Dalign%3A%20center%3B%0A%7D%0A%23TOC%20%7B%0Aclear%3A%20both%3B%0Amargin%3A%200%200%2010px%2010px%3B%0Apadding%3A%204px%3B%0Awidth%3A%20400px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Aborder%2Dradius%3A%205px%3B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Afont%2Dsize%3A%2013px%3B%0Aline%2Dheight%3A%201%2E3%3B%0A%7D%0A%23TOC%20%2Etoctitle%20%7B%0Afont%2Dweight%3A%20bold%3B%0Afont%2Dsize%3A%2015px%3B%0Amargin%2Dleft%3A%205px%3B%0A%7D%0A%23TOC%20ul%20%7B%0Apadding%2Dleft%3A%2040px%3B%0Amargin%2Dleft%3A%20%2D1%2E5em%3B%0Amargin%2Dtop%3A%205px%3B%0Amargin%2Dbottom%3A%205px%3B%0A%7D%0A%23TOC%20ul%20ul%20%7B%0Amargin%2Dleft%3A%20%2D2em%3B%0A%7D%0A%23TOC%20li%20%7B%0Aline%2Dheight%3A%2016px%3B%0A%7D%0Atable%20%7B%0Amargin%3A%201em%20auto%3B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dcolor%3A%20%23DDDDDD%3B%0Aborder%2Dstyle%3A%20outset%3B%0Aborder%2Dcollapse%3A%20collapse%3B%0A%7D%0Atable%20th%20%7B%0Aborder%2Dwidth%3A%202px%3B%0Apadding%3A%205px%3B%0Aborder%2Dstyle%3A%20inset%3B%0A%7D%0Atable%20td%20%7B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dstyle%3A%20inset%3B%0Aline%2Dheight%3A%2018px%3B%0Apadding%3A%205px%205px%3B%0A%7D%0Atable%2C%20table%20th%2C%20table%20td%20%7B%0Aborder%2Dleft%2Dstyle%3A%20none%3B%0Aborder%2Dright%2Dstyle%3A%20none%3B%0A%7D%0Atable%20thead%2C%20table%20tr%2Eeven%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Ap%20%7B%0Amargin%3A%200%2E5em%200%3B%0A%7D%0Ablockquote%20%7B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Apadding%3A%200%2E25em%200%2E75em%3B%0A%7D%0Ahr%20%7B%0Aborder%2Dstyle%3A%20solid%3B%0Aborder%3A%20none%3B%0Aborder%2Dtop%3A%201px%20solid%20%23777%3B%0Amargin%3A%2028px%200%3B%0A%7D%0Adl%20%7B%0Amargin%2Dleft%3A%200%3B%0A%7D%0Adl%20dd%20%7B%0Amargin%2Dbottom%3A%2013px%3B%0Amargin%2Dleft%3A%2013px%3B%0A%7D%0Adl%20dt%20%7B%0Afont%2Dweight%3A%20bold%3B%0A%7D%0Aul%20%7B%0Amargin%2Dtop%3A%200%3B%0A%7D%0Aul%20li%20%7B%0Alist%2Dstyle%3A%20circle%20outside%3B%0A%7D%0Aul%20ul%20%7B%0Amargin%2Dbottom%3A%200%3B%0A%7D%0Apre%2C%20code%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0Aborder%2Dradius%3A%203px%3B%0Acolor%3A%20%23333%3B%0Awhite%2Dspace%3A%20pre%2Dwrap%3B%20%0A%7D%0Apre%20%7B%0Aborder%2Dradius%3A%203px%3B%0Amargin%3A%205px%200px%2010px%200px%3B%0Apadding%3A%2010px%3B%0A%7D%0Apre%3Anot%28%5Bclass%5D%29%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Acode%20%7B%0Afont%2Dfamily%3A%20Consolas%2C%20Monaco%2C%20%27Courier%20New%27%2C%20monospace%3B%0Afont%2Dsize%3A%2085%25%3B%0A%7D%0Ap%20%3E%20code%2C%20li%20%3E%20code%20%7B%0Apadding%3A%202px%200px%3B%0A%7D%0Adiv%2Efigure%20%7B%0Atext%2Dalign%3A%20center%3B%0A%7D%0Aimg%20%7B%0Abackground%2Dcolor%3A%20%23FFFFFF%3B%0Apadding%3A%202px%3B%0Aborder%3A%201px%20solid%20%23DDDDDD%3B%0Aborder%2Dradius%3A%203px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Amargin%3A%200%205px%3B%0A%7D%0Ah1%20%7B%0Amargin%2Dtop%3A%200%3B%0Afont%2Dsize%3A%2035px%3B%0Aline%2Dheight%3A%2040px%3B%0A%7D%0Ah2%20%7B%0Aborder%2Dbottom%3A%204px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Apadding%2Dbottom%3A%202px%3B%0Afont%2Dsize%3A%20145%25%3B%0A%7D%0Ah3%20%7B%0Aborder%2Dbottom%3A%202px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Afont%2Dsize%3A%20120%25%3B%0A%7D%0Ah4%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23f7f7f7%3B%0Amargin%2Dleft%3A%208px%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Ah5%2C%20h6%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23ccc%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Aa%20%7B%0Acolor%3A%20%230033dd%3B%0Atext%2Ddecoration%3A%20none%3B%0A%7D%0Aa%3Ahover%20%7B%0Acolor%3A%20%236666ff%3B%20%7D%0Aa%3Avisited%20%7B%0Acolor%3A%20%23800080%3B%20%7D%0Aa%3Avisited%3Ahover%20%7B%0Acolor%3A%20%23BB00BB%3B%20%7D%0Aa%5Bhref%5E%3D%22http%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0Aa%5Bhref%5E%3D%22https%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0A%0Acode%20%3E%20span%2Ekw%20%7B%20color%3A%20%23555%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Edt%20%7B%20color%3A%20%23902000%3B%20%7D%20%0Acode%20%3E%20span%2Edv%20%7B%20color%3A%20%2340a070%3B%20%7D%20%0Acode%20%3E%20span%2Ebn%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Efl%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Ech%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Est%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Eco%20%7B%20color%3A%20%23888888%3B%20font%2Dstyle%3A%20italic%3B%20%7D%20%0Acode%20%3E%20span%2Eot%20%7B%20color%3A%20%23007020%3B%20%7D%20%0Acode%20%3E%20span%2Eal%20%7B%20color%3A%20%23ff0000%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Efu%20%7B%20color%3A%20%23900%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%20code%20%3E%20span%2Eer%20%7B%20color%3A%20%23a61717%3B%20background%2Dcolor%3A%20%23e3d2d2%3B%20%7D%20%0A" rel="stylesheet" type="text/css" />
 
 </head>
 
 <body>
+
+
+
+
+<h1 class="title toc-ignore">Retrieval and processing of OISST data</h1>
+<h4 class="author"><em>AJ Smit</em></h4>
+<h4 class="date"><em>2018-06-22</em></h4>
+
+
+
+<div id="overview" class="section level2">
 <h2>Overview</h2>
-
-<p>In this vignette we shall look at retrieving and processing the <a href="https://journals.ametsoc.org/doi/full/10.1175/2007JCLI1824.1">Reynolds optimally interpolated sea surface temperature</a> (OISST), which is a global data set of Advanced Very High Resolution Radiometer (AVHRR) derived SSTs at a daily resolution, starting on 1 September 1981. The source of the data is the <a href="https://podaac.jpl.nasa.gov/">Physical Oceanography Distributed Active Archive Centre (PODAAC)</a>. </p>
-
+<p>In this vignette we shall look at retrieving and processing the <a href="https://journals.ametsoc.org/doi/full/10.1175/2007JCLI1824.1">Reynolds optimally interpolated sea surface temperature</a> (OISST), which is a global data set of Advanced Very High Resolution Radiometer (AVHRR) derived SSTs at a daily resolution, starting on 1 September 1981. The source of the data is the <a href="https://podaac.jpl.nasa.gov/">Physical Oceanography Distributed Active Archive Centre (PODAAC)</a>.</p>
 <!-- ![**Figure 1.** OISST data plotted on a Gnomic Cubic Sphere projection thanks to [Panoply](https://www.giss.nasa.gov/tools/panoply/)---the link to certain religious iconography is purely coincidental. The SST field is filled using the Parula colour scale.](avhrr-only-v2.19810901.png){width=100%} -->
-
 <p>Each global, daily file is around 8.3Mb, so they add up to a large amount of data when a time series of at least 30 years duration is downloaded. A time series of at least 30 years is needed for heatwave detection. Currently I have 13,216 of these global files, and this amounts to ~108Gb of total disk space. Since not everyone will need all of these data, we shall subset the data using a python script prior to downloading them.</p>
-
+</div>
+<div id="subsetting-using-a-python-script" class="section level2">
 <h2>Subsetting using a python script</h2>
-
 <p>To do the subsetting and bring the data to your local computer/server, you will need access to <strong>python 2.7</strong> with <strong>numpy</strong>. Make sure it is installed on your system and visible on the system PATH.</p>
-
 <p>Create a folder on your server where all the data will be received, below, for example, I use <code>/Users/ajsmit/spatial/test/netCDF</code>.</p>
-
-<p>Into this directory, copy the python script, <code>subset_dataset.py</code> (<a href="https://podaac.jpl.nasa.gov/forum/viewtopic.php?f=5&amp;t=219">link</a>). Remember to make the file executable by running <code>chmod +x subset_dataset.py</code>. I use MacOS X (or linux), so I&#39;m not able to provide instructions if you use Windows. In a terminal, change to the directory that will receive the netCDF files, where the python script now lives. If python is in your system&#39;s path, you should be able to execute the following command on the terminal/command line at the prompt <code>&gt;</code>:</p>
-
+<p>Into this directory, copy the python script, <code>subset_dataset.py</code> (<a href="https://podaac.jpl.nasa.gov/forum/viewtopic.php?f=5&amp;t=219">link</a>). Remember to make the file executable by running <code>chmod +x subset_dataset.py</code>. I use MacOS X (or linux), so I’m not able to provide instructions if you use Windows. In a terminal, change to the directory that will receive the netCDF files, where the python script now lives. If python is in your system’s path, you should be able to execute the following command on the terminal/command line at the prompt <code>&gt;</code>:</p>
 <p><code>&gt; ./subset_dataset.py -s 19810901 -f 20171014 -b 6.25 45 -45 -20 -x AVHRR_OI-NCEI-L4-GLOB-v2.0</code></p>
-
 <p>Encapsulated by the above command are the following parameters:</p>
-
 <ul>
 <li>long.min = 6.25</li>
 <li>long.max = 45</li>
@@ -230,208 +96,208 @@ hr {
 <li>end.date = 2017-10-14</li>
 <li>short.name = AVHRR_OI-NCEI-L4-GLOB-v2.0</li>
 </ul>
-
-<p>The spatial extent is for the Agulhas Current region around South Africa; we select files starting in 1981-09-01 and going up to 2017-10-19. The short name is the name mentioned on the <a href="https://podaac.jpl.nasa.gov/dataset/AVHRR_OI-NCEI-L4-GLOB-v2.0">Reynolds OISST data website</a>&mdash;substituting this name for any of the other SST datasets on that website <em>should</em> then permit the retrieval of other data sets (e.g. the <a href="https://podaac.jpl.nasa.gov/dataset/MUR-JPL-L4-GLOB-v4.1">MUR data&#39;s</a> short name is MUR-JPL-L4-GLOB-v4.1).</p>
-
+<p>The spatial extent is for the Agulhas Current region around South Africa; we select files starting in 1981-09-01 and going up to 2017-10-19. The short name is the name mentioned on the <a href="https://podaac.jpl.nasa.gov/dataset/AVHRR_OI-NCEI-L4-GLOB-v2.0">Reynolds OISST data website</a>—substituting this name for any of the other SST datasets on that website <em>should</em> then permit the retrieval of other data sets (e.g. the <a href="https://podaac.jpl.nasa.gov/dataset/MUR-JPL-L4-GLOB-v4.1">MUR data’s</a> short name is MUR-JPL-L4-GLOB-v4.1).</p>
 <p>Adjust any of these parameters to taste in order to define the spatial extent and the time period as required by your study.</p>
-
 <p>If everything works according to plan, a bunch of data will now be downloaded. This might take several hours. There will be one netCDF file for each day of the study period. In later steps in R we shall combine them into one <code>.csv</code> file, and then do some other processing steps on them to extract the heat waves.</p>
-
+</div>
+<div id="extracting-the-sst-data" class="section level2">
 <h2>Extracting the SST data</h2>
-
-<p>There are many ways to approach this problem, and the one I take here is to produce an intermediate <code>.csv</code> file that has all the data for the region/period of interest&mdash;all of it in one file. For the subregion/period defined by the python subsetting function, above, this combined file weighs in at 4.88Gb. This might not be the most efficient way to deal with the problem, but I like having this intermediate <code>.csv</code> file on hand as I subject these data to several other processing steps besides marine heat wave detection.</p>
-
+<p>There are many ways to approach this problem, and the one I take here is to produce an intermediate <code>.csv</code> file that has all the data for the region/period of interest—all of it in one file. For the subregion/period defined by the python subsetting function, above, this combined file weighs in at 4.88Gb. This might not be the most efficient way to deal with the problem, but I like having this intermediate <code>.csv</code> file on hand as I subject these data to several other processing steps besides marine heat wave detection.</p>
 <p>Here is a set of steps that does the job for me:</p>
-
-<pre><code class="r"># generic_netCDF2csv.R
-
-
-# NOTES ON USING THIS SCRIPT ----------------------------------------------
-
-# 1. The Reynolds OISST v2 data processed by this script can be retrieved from:
-# https://podaac.jpl.nasa.gov/dataset/AVHRR_OI-NCEI-L4-GLOB-v2.0
-# 2. Subsetting and the selection of the time steps to be done via the python
-# script `subset_dataset.py`.
-# 3. This R script requires the already subsetted netCDFs to reside inside a
-# directory whose path is specified by `nc.dir`, below.
-# 4. The .csv files produced will be placed inside of the directory named by
-# `csv.dir` (make sure this directory already exists).
-# 5. The dates that will be included with the final .csv file will be extracted
-# directly from the names of the daily netCDF files; please, therefore, make
-# sure to never change them by manually editing them.
-# 6. The base name of the new .csv file will be partly based on the name of the
-# input netCDF files, with the start and end dates appended at the end. These
-# things are hard coded into the script below.
-# 7. I am sure I have missed some things, or that some things may break somehow;
-# please let me know if this happens and I shall fix it.
-# 8. This file may take a while to run (10s of minutes to hours, depending on
-# the amount of data processed); please be patient while it does its thing.
-
-# Author: AJ Smit
-# Date: 27 April 2018
-# e-mail: ajsmit@uwc.ac.za
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># generic_netCDF2csv.R</span>
 
 
-# CAUTION -----------------------------------------------------------------
+<span class="co"># NOTES ON USING THIS SCRIPT ----------------------------------------------</span>
 
-# This function will append data to the end of an existing file that had been
-# previously produced by this script. This will result in duplicate data. If you
-# need to rerun the script for some reason, please make sure to delete the file
-# created as the result of the previous run from the `csv.dir`.
+<span class="co"># 1. The Reynolds OISST v2 data processed by this script can be retrieved from:</span>
+<span class="co"># https://podaac.jpl.nasa.gov/dataset/AVHRR_OI-NCEI-L4-GLOB-v2.0</span>
+<span class="co"># 2. Subsetting and the selection of the time steps to be done via the python</span>
+<span class="co"># script `subset_dataset.py`.</span>
+<span class="co"># 3. This R script requires the already subsetted netCDFs to reside inside a</span>
+<span class="co"># directory whose path is specified by `nc.dir`, below.</span>
+<span class="co"># 4. The .csv files produced will be placed inside of the directory named by</span>
+<span class="co"># `csv.dir` (make sure this directory already exists).</span>
+<span class="co"># 5. The dates that will be included with the final .csv file will be extracted</span>
+<span class="co"># directly from the names of the daily netCDF files; please, therefore, make</span>
+<span class="co"># sure to never change them by manually editing them.</span>
+<span class="co"># 6. The base name of the new .csv file will be partly based on the name of the</span>
+<span class="co"># input netCDF files, with the start and end dates appended at the end. These</span>
+<span class="co"># things are hard coded into the script below.</span>
+<span class="co"># 7. I am sure I have missed some things, or that some things may break somehow;</span>
+<span class="co"># please let me know if this happens and I shall fix it.</span>
+<span class="co"># 8. This file may take a while to run (10s of minutes to hours, depending on</span>
+<span class="co"># the amount of data processed); please be patient while it does its thing.</span>
 
-
-# LOAD LIBRARIES ----------------------------------------------------------
-
-library(ncdf4) # library for processing netCDFs
-library(data.table) # for fast .csv write function, `fwrite()`
-library(tidyverse) # misc. data processing conveniences
-library(reshape2) # for making a long data format
-library(plyr) # for `llply()`
-library(lubridate) # for working with dates
-library(stringr) # for working with strings
-library(doMC); doMC::registerDoMC(cores = 4) # for multicore spead-ups
-
-
-# SPECIFY FILE PATHS ------------------------------------------------------
-
-# Setup OISST netCDF data path and csv file output directory
-nc.dir &lt;- &quot;/Users/ajsmit/spatial/test/netCDF&quot;
-csv.dir &lt;- &quot;/Users/ajsmit/spatial/test/csv&quot;
-
-
-# PARSE FILE INFO (not used directly) -------------------------------------
-
-# Use to determine the start/end points of the `name.stem` (see code below)
-#          1         2         3         4         5         6         7
-# 123456789012345678901234567890123456789012345678901234567890123456789012345
-# 20091231120000-NCEI-L4_GHRSST-SSTblend-AVHRR_OI-GLOB-v02.0-fv02.0_subset.nc
+<span class="co"># Author: AJ Smit</span>
+<span class="co"># Date: 27 April 2018</span>
+<span class="co"># e-mail: ajsmit@uwc.ac.za</span>
 
 
-# OISST netCDF READ FUNCTION ----------------------------------------------
+<span class="co"># </span><span class="al">CAUTION</span><span class="co"> -----------------------------------------------------------------</span>
 
-# Function to extract the dims and data from OISST netCDFs
-ncRead &lt;- function(nc.dir = nc.dir, csv.dir = csv.dir) {
-  nc.list &lt;- list.files(path = nc.dir, pattern = &quot;*.nc&quot;, full.names = TRUE, include.dirs = TRUE)
-  strt.date &lt;- str_sub(basename(nc.list[1]), start = 1, end = 8)
-  end.date &lt;- str_sub(basename(nc.list[length(nc.list)]), start = 1, end = 8)
+<span class="co"># This function will append data to the end of an existing file that had been</span>
+<span class="co"># previously produced by this script. This will result in duplicate data. If you</span>
+<span class="co"># need to rerun the script for some reason, please make sure to delete the file</span>
+<span class="co"># created as the result of the previous run from the `csv.dir`.</span>
 
-  ncFun &lt;- function(nc.file = nc.file, csv.dir = csv.dir) {
-    nc &lt;- nc_open(nc.file)
-    name.stem &lt;- substr(basename(nc.file), 16, 72)
-    date.stamp &lt;- substr(basename(nc.file), 1, 8)
-    sst &lt;- round(ncvar_get(nc, varid = &quot;analysed_sst&quot;), 4)
-    dimnames(sst) &lt;- list(lon = nc$dim$lon$vals,
-                          lat = nc$dim$lat$vals)
-    nc_close(nc)
+
+<span class="co"># LOAD LIBRARIES ----------------------------------------------------------</span>
+
+<span class="kw">library</span>(ncdf4) <span class="co"># library for processing netCDFs</span>
+<span class="kw">library</span>(data.table) <span class="co"># for fast .csv write function, `fwrite()`</span>
+<span class="kw">library</span>(tidyverse) <span class="co"># misc. data processing conveniences</span>
+<span class="kw">library</span>(reshape2) <span class="co"># for making a long data format</span>
+<span class="kw">library</span>(plyr) <span class="co"># for `llply()`</span>
+<span class="kw">library</span>(lubridate) <span class="co"># for working with dates</span>
+<span class="kw">library</span>(stringr) <span class="co"># for working with strings</span>
+<span class="kw">library</span>(doMC); doMC<span class="op">::</span><span class="kw">registerDoMC</span>(<span class="dt">cores =</span> <span class="dv">4</span>) <span class="co"># for multicore spead-ups</span>
+
+
+<span class="co"># SPECIFY FILE PATHS ------------------------------------------------------</span>
+
+<span class="co"># Setup OISST netCDF data path and csv file output directory</span>
+nc.dir &lt;-<span class="st"> &quot;/Users/ajsmit/spatial/test/netCDF&quot;</span>
+csv.dir &lt;-<span class="st"> &quot;/Users/ajsmit/spatial/test/csv&quot;</span>
+
+
+<span class="co"># PARSE FILE INFO (not used directly) -------------------------------------</span>
+
+<span class="co"># Use to determine the start/end points of the `name.stem` (see code below)</span>
+<span class="co">#          1         2         3         4         5         6         7</span>
+<span class="co"># 123456789012345678901234567890123456789012345678901234567890123456789012345</span>
+<span class="co"># 20091231120000-NCEI-L4_GHRSST-SSTblend-AVHRR_OI-GLOB-v02.0-fv02.0_subset.nc</span>
+
+
+<span class="co"># OISST netCDF READ FUNCTION ----------------------------------------------</span>
+
+<span class="co"># Function to extract the dims and data from OISST netCDFs</span>
+ncRead &lt;-<span class="st"> </span><span class="cf">function</span>(<span class="dt">nc.dir =</span> nc.dir, <span class="dt">csv.dir =</span> csv.dir) {
+  nc.list &lt;-<span class="st"> </span><span class="kw">list.files</span>(<span class="dt">path =</span> nc.dir, <span class="dt">pattern =</span> <span class="st">&quot;*.nc&quot;</span>, <span class="dt">full.names =</span> <span class="ot">TRUE</span>, <span class="dt">include.dirs =</span> <span class="ot">TRUE</span>)
+  strt.date &lt;-<span class="st"> </span><span class="kw">str_sub</span>(<span class="kw">basename</span>(nc.list[<span class="dv">1</span>]), <span class="dt">start =</span> <span class="dv">1</span>, <span class="dt">end =</span> <span class="dv">8</span>)
+  end.date &lt;-<span class="st"> </span><span class="kw">str_sub</span>(<span class="kw">basename</span>(nc.list[<span class="kw">length</span>(nc.list)]), <span class="dt">start =</span> <span class="dv">1</span>, <span class="dt">end =</span> <span class="dv">8</span>)
+
+  ncFun &lt;-<span class="st"> </span><span class="cf">function</span>(<span class="dt">nc.file =</span> nc.file, <span class="dt">csv.dir =</span> csv.dir) {
+    nc &lt;-<span class="st"> </span><span class="kw">nc_open</span>(nc.file)
+    name.stem &lt;-<span class="st"> </span><span class="kw">substr</span>(<span class="kw">basename</span>(nc.file), <span class="dv">16</span>, <span class="dv">72</span>)
+    date.stamp &lt;-<span class="st"> </span><span class="kw">substr</span>(<span class="kw">basename</span>(nc.file), <span class="dv">1</span>, <span class="dv">8</span>)
+    sst &lt;-<span class="st"> </span><span class="kw">round</span>(<span class="kw">ncvar_get</span>(nc, <span class="dt">varid =</span> <span class="st">&quot;analysed_sst&quot;</span>), <span class="dv">4</span>)
+    <span class="kw">dimnames</span>(sst) &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="dt">lon =</span> nc<span class="op">$</span>dim<span class="op">$</span>lon<span class="op">$</span>vals,
+                          <span class="dt">lat =</span> nc<span class="op">$</span>dim<span class="op">$</span>lat<span class="op">$</span>vals)
+    <span class="kw">nc_close</span>(nc)
     sst &lt;-
-      as.data.frame(melt(sst, value.name = &quot;temp&quot;), row.names = NULL) %&gt;%
-      mutate(t = ymd(date.stamp)) %&gt;%
-      na.omit()
-    # Use data.table&#39;s `fwrite()` because it is much faster than anything else
-    # for large csv files
-    fwrite(sst,
-           file = paste0(csv.dir, &quot;/&quot;, name.stem, &quot;-&quot;, strt.date, &quot;-&quot;, end.date, &quot;.csv&quot;),
-           append = TRUE, col.names = FALSE)
-    rm(sst)
+<span class="st">      </span><span class="kw">as.data.frame</span>(<span class="kw">melt</span>(sst, <span class="dt">value.name =</span> <span class="st">&quot;temp&quot;</span>), <span class="dt">row.names =</span> <span class="ot">NULL</span>) <span class="op">%&gt;%</span>
+<span class="st">      </span><span class="kw">mutate</span>(<span class="dt">t =</span> <span class="kw">ymd</span>(date.stamp)) <span class="op">%&gt;%</span>
+<span class="st">      </span><span class="kw">na.omit</span>()
+    <span class="co"># Use data.table's `fwrite()` because it is much faster than anything else</span>
+    <span class="co"># for large csv files</span>
+    <span class="kw">fwrite</span>(sst,
+           <span class="dt">file =</span> <span class="kw">paste0</span>(csv.dir, <span class="st">&quot;/&quot;</span>, name.stem, <span class="st">&quot;-&quot;</span>, strt.date, <span class="st">&quot;-&quot;</span>, end.date, <span class="st">&quot;.csv&quot;</span>),
+           <span class="dt">append =</span> <span class="ot">TRUE</span>, <span class="dt">col.names =</span> <span class="ot">FALSE</span>)
+    <span class="kw">rm</span>(sst)
   }
-  # `parallel = FALSE` allows for better error checking should something go wrong;
-  # there&#39;s also a helpful progress bar that becomes available
-  llply(nc.list, ncFun, csv.dir = csv.dir, .parallel = FALSE)
-}
-</code></pre>
-
+  <span class="co"># `parallel = FALSE` allows for better error checking should something go wrong;</span>
+  <span class="co"># there's also a helpful progress bar that becomes available</span>
+  <span class="kw">llply</span>(nc.list, ncFun, <span class="dt">csv.dir =</span> csv.dir, <span class="dt">.parallel =</span> <span class="ot">FALSE</span>)
+}</code></pre></div>
 <p>Now I simply run this function:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># RUN THE FUNCTION --------------------------------------------------------</span>
 
-<pre><code class="r"># RUN THE FUNCTION --------------------------------------------------------
-
-# If everything works according to plan, all that&#39;s required is to execute
-# this line as is after specifying `nc.dir` and `csv.dir` paths, above
-system.time(ncRead(nc.dir, csv.dir))
-</code></pre>
-
+<span class="co"># If everything works according to plan, all that's required is to execute</span>
+<span class="co"># this line as is after specifying `nc.dir` and `csv.dir` paths, above</span>
+<span class="kw">system.time</span>(<span class="kw">ncRead</span>(nc.dir, csv.dir))</code></pre></div>
+</div>
+<div id="event-detection" class="section level2">
 <h2>Event detection</h2>
-
 <p>Now we shall detect the extreme heat events using the <strong>RmarineHeaWaves</strong> package (soon to be replaced with <strong>heatwaveR</strong>).</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># SET-UP SOME THINGS ------------------------------------------------------</span>
 
-<pre><code class="r"># SET-UP SOME THINGS ------------------------------------------------------
+csv.dir &lt;-<span class="st"> &quot;/Users/ajsmit/spatial/test/csv&quot;</span>
 
-csv.dir &lt;- &quot;/Users/ajsmit/spatial/test/csv&quot;
+<span class="co"># Specify the name of the file created by `system.time(ncRead(nc.dir, csv.dir))` in the</span>
+<span class="co"># `csv.dir` that was named above</span>
+csv.file &lt;-<span class="st"> &quot;NCEI-L4_GHRSST-SSTblend-AVHRR_OI-GLOB-v02.0-fv02.0_subset-19810901-20171014.csv&quot;</span>
 
-# Specify the name of the file created by `system.time(ncRead(nc.dir, csv.dir))` in the
-# `csv.dir` that was named above
-csv.file &lt;- &quot;NCEI-L4_GHRSST-SSTblend-AVHRR_OI-GLOB-v02.0-fv02.0_subset-19810901-20171014.csv&quot;
-
-# Read in the data in the combined .csv file and assign column names;
-# again using the data.table way (`fread()`), which is FAST...
-sst.dat &lt;- fread(paste0(csv.dir, &quot;/&quot;, csv.file))
-colnames(sst.dat) &lt;- c(&quot;lon&quot;, &quot;lat&quot;, &quot;temp&quot;, &quot;t&quot;)
+<span class="co"># Read in the data in the combined .csv file and assign column names;</span>
+<span class="co"># again using the data.table way (`fread()`), which is FAST...</span>
+sst.dat &lt;-<span class="st"> </span><span class="kw">fread</span>(<span class="kw">paste0</span>(csv.dir, <span class="st">&quot;/&quot;</span>, csv.file))
+<span class="kw">colnames</span>(sst.dat) &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;lon&quot;</span>, <span class="st">&quot;lat&quot;</span>, <span class="st">&quot;temp&quot;</span>, <span class="st">&quot;t&quot;</span>)
 
 
-# A FAST DATE FUNCTION ----------------------------------------------------
+<span class="co"># A FAST DATE FUNCTION ----------------------------------------------------</span>
 
-# This speeds the creation of the date vector up immensely
-fastDate &lt;- function(x, tz = NULL) {
-  require(fasttime)
-  as.Date(fastPOSIXct(x, tz = tz))
+<span class="co"># This speeds the creation of the date vector up immensely</span>
+fastDate &lt;-<span class="st"> </span><span class="cf">function</span>(x, <span class="dt">tz =</span> <span class="ot">NULL</span>) {
+  <span class="kw">require</span>(fasttime)
+  <span class="kw">as.Date</span>(<span class="kw">fastPOSIXct</span>(x, <span class="dt">tz =</span> tz))
 }
 
 
-# APPLY FAST DATE FUNCTION ------------------------------------------------
+<span class="co"># APPLY FAST DATE FUNCTION ------------------------------------------------</span>
 
-sst.dat$t &lt;- fastDate(sst.dat$t)
+sst.dat<span class="op">$</span>t &lt;-<span class="st"> </span><span class="kw">fastDate</span>(sst.dat<span class="op">$</span>t)
 
 
-# DETECT FUNCTION FOR GRIDDED DATA ----------------------------------------
+<span class="co"># DETECT FUNCTION FOR GRIDDED DATA ----------------------------------------</span>
 
-# The `clim` switch selects either climatology or events as output;
-# please provide your own date range in here
-OISST_detect &lt;- function(dat = data, doy = doy, x = t, y = temp,
-                         warm = TRUE, clim = FALSE,
-                         climatology_start = &quot;1983-01-01&quot;,
-                         climatology_end = &quot;2012-12-31&quot;) {
-  require(RmarineHeatWaves)
-  dat &lt;- dat[,3:4] # hard-code cols with temp and date
-  whole &lt;- make_whole(dat)
-  if (warm) {
-    out &lt;- detect(whole, min_duration = 5, max_gap = 2, cold_spells = FALSE,
-                  climatology_start = climatology_start,
-                  climatology_end = climatology_end)
-  } else {
-    out &lt;- detect(whole, min_duration = 5, max_gap = 2, cold_spells = TRUE,
-                  climatology_start = climatology_start,
-                  climatology_end = climatology_end)
+<span class="co"># The `clim` switch selects either climatology or events as output;</span>
+<span class="co"># please provide your own date range in here</span>
+OISST_detect &lt;-<span class="st"> </span><span class="cf">function</span>(<span class="dt">dat =</span> data, <span class="dt">doy =</span> doy, <span class="dt">x =</span> t, <span class="dt">y =</span> temp,
+                         <span class="dt">warm =</span> <span class="ot">TRUE</span>, <span class="dt">clim =</span> <span class="ot">FALSE</span>,
+                         <span class="dt">climatology_start =</span> <span class="st">&quot;1983-01-01&quot;</span>,
+                         <span class="dt">climatology_end =</span> <span class="st">&quot;2012-12-31&quot;</span>) {
+  <span class="kw">require</span>(RmarineHeatWaves)
+  dat &lt;-<span class="st"> </span>dat[,<span class="dv">3</span><span class="op">:</span><span class="dv">4</span>] <span class="co"># hard-code cols with temp and date</span>
+  whole &lt;-<span class="st"> </span><span class="kw">make_whole</span>(dat)
+  <span class="cf">if</span> (warm) {
+    out &lt;-<span class="st"> </span><span class="kw">detect</span>(whole, <span class="dt">min_duration =</span> <span class="dv">5</span>, <span class="dt">max_gap =</span> <span class="dv">2</span>, <span class="dt">cold_spells =</span> <span class="ot">FALSE</span>,
+                  <span class="dt">climatology_start =</span> climatology_start,
+                  <span class="dt">climatology_end =</span> climatology_end)
+  } <span class="cf">else</span> {
+    out &lt;-<span class="st"> </span><span class="kw">detect</span>(whole, <span class="dt">min_duration =</span> <span class="dv">5</span>, <span class="dt">max_gap =</span> <span class="dv">2</span>, <span class="dt">cold_spells =</span> <span class="ot">TRUE</span>,
+                  <span class="dt">climatology_start =</span> climatology_start,
+                  <span class="dt">climatology_end =</span> climatology_end)
   }
-  if (clim) {
-    clim &lt;- out$clim
-    return(clim)
-  } else {
-    event &lt;- out$event
-    return(event)
+  <span class="cf">if</span> (clim) {
+    clim &lt;-<span class="st"> </span>out<span class="op">$</span>clim
+    <span class="kw">return</span>(clim)
+  } <span class="cf">else</span> {
+    event &lt;-<span class="st"> </span>out<span class="op">$</span>event
+    <span class="kw">return</span>(event)
   }
 }
 
 
-# DETECT EVENTS! ----------------------------------------------------------
+<span class="co"># DETECT EVENTS! ----------------------------------------------------------</span>
 
-events &lt;- as_tibble(ddply(sst.dat, .(lon, lat), OISST_detect,
-                          warm = TRUE, clim = FALSE,
-                          .parallel = FALSE, .progress = &quot;text&quot;))
+events &lt;-<span class="st"> </span><span class="kw">as_tibble</span>(<span class="kw">ddply</span>(sst.dat, .(lon, lat), OISST_detect,
+                          <span class="dt">warm =</span> <span class="ot">TRUE</span>, <span class="dt">clim =</span> <span class="ot">FALSE</span>,
+                          <span class="dt">.parallel =</span> <span class="ot">FALSE</span>, <span class="dt">.progress =</span> <span class="st">&quot;text&quot;</span>))
 
 
-# SAVE AND CLEAN UP -------------------------------------------------------
-event.dir &lt;- &quot;/Users/ajsmit/spatial/test/events&quot;
+<span class="co"># SAVE AND CLEAN UP -------------------------------------------------------</span>
+event.dir &lt;-<span class="st"> &quot;/Users/ajsmit/spatial/test/events&quot;</span>
 
-# Reuse the existing name; this ensures traceability of the files back to
-# the input sources
-event.file &lt;- gsub(pattern = &quot;\\.csv$&quot;, &quot;&quot;, csv.file)
+<span class="co"># Reuse the existing name; this ensures traceability of the files back to</span>
+<span class="co"># the input sources</span>
+event.file &lt;-<span class="st"> </span><span class="kw">gsub</span>(<span class="dt">pattern =</span> <span class="st">&quot;</span><span class="ch">\\</span><span class="st">.csv$&quot;</span>, <span class="st">&quot;&quot;</span>, csv.file)
 
-# Write the file out to disk
-fwrite(events, file = paste0(&quot;event.dir&quot;, &quot;/&quot;, event.file, &quot;-events.csv&quot;))
-remove(events); remove(sst.dat)
-</code></pre>
-
+<span class="co"># Write the file out to disk</span>
+<span class="kw">fwrite</span>(events, <span class="dt">file =</span> <span class="kw">paste0</span>(<span class="st">&quot;event.dir&quot;</span>, <span class="st">&quot;/&quot;</span>, event.file, <span class="st">&quot;-events.csv&quot;</span>))
+<span class="kw">remove</span>(events); <span class="kw">remove</span>(sst.dat)</code></pre></div>
 <p>Please let me know if there are issues with the scripts, or if you have suggesations about how to improve them.</p>
+</div>
+
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
 
 </body>
-
 </html>

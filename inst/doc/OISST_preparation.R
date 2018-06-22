@@ -1,7 +1,7 @@
 ## ----global_options, include = FALSE-------------------------------------
-knitr::opts_chunk$set(fig.width = 4, fig.align = 'center',
-                      echo = FALSE, warning = FALSE, 
-                      message = FALSE, tidy = FALSE)
+knitr::opts_chunk$set(fig.width = 8, fig.height = 3, fig.align = 'centre',
+                      echo = FALSE, warning = FALSE, message = FALSE,
+                      eval = FALSE, tidy = FALSE)
 
 ## ----netCDF2csv, echo = TRUE, eval = FALSE-------------------------------
 #  # generic_netCDF2csv.R

@@ -1,3 +1,36 @@
+# heatwaveR 0.3.0 (2018-06-22)
+
+* Re-submitted to CRAN in anticipation of __`ggplot2`__ changes
+
+ `proto_event` now handles all event calculations 'in house'
+* This allows `detect_event` to now be given a theoretically limitless number of thresholds
+
+# heatwaveR 0.2.7.9003 (2018-06-08)
+
+* Logic catch for `lolli_plot` being asked to highlight more events than are present
+* New vignette that looks at calculating more complex climatologies
+
+# heatwaveR 0.2.7.9002 (2018-06-07)
+
+* Tweak to `ts2clm`
+
+# heatwaveR 0.2.7.9001 (2018-06-05)
+
+* Tweaks to `detect_event` and `exceedance`
+
+# heatwaveR 0.2.7.9000 (2018-06-02)
+
+* Unused Rcpp code removed from master branch
+* Logo changed slightly
+* Codecov back up to 100%
+* Addressed one testthat issue that was causing the OSX CRAN build to fail
+* Added CRAN link to pkgdown site
+* Added Bug Report link to pkgdown site
+
+# heatwaveR 0.2.7 (2018-05-30)
+
+* Accepted on CRAN
+
 # heatwaveR 0.2.7 (2018-05-28)
 
 * Submitted to CRAN

@@ -160,9 +160,13 @@ ts2clm <-
     rm(ts_x); rm(ts_y)
 
     if (robust) {
+
       ts_whole <- make_whole(ts_xy, x = ts_x, y = ts_y)
+
     } else {
+
       ts_whole <- make_whole_fast(ts_xy, x = ts_x, y = ts_y)
+
     }
 
     ts_whole <- na_interp(doy = ts_whole$doy,
@@ -180,19 +184,28 @@ ts2clm <-
       stop(paste("The specified end date follows the last day of series, which is",
                  ts_whole$ts_x[nrow(ts_whole)]))
 
-    ts_wide <- clim_spread(ts_whole, clim_start, clim_end, windowHalfWidth)
+    if(as.Date(clim_end) - as.Date(clim_start) < 1095)
+      stop("The climatologyPeriod must be at least three years to calculate thresholds")
 
+    ts_wide <- clim_spread(ts_whole, clim_start, clim_end, windowHalfWidth)
     ts_mat <- clim_calc_cpp(ts_wide, windowHalfWidth, pctile)
 
     if (smoothPercentile) {
+
       ts_clim <- smooth_percentile(ts_mat, smoothPercentileWidth)
+
     } else {
+
       ts_clim <- data.table::data.table(ts_mat)
+
     }
 
     if (clmOnly) {
+
       return(ts_clim)
+
     } else {
+
       data.table::setkey(ts_whole, doy)
       data.table::setkey(ts_clim, doy)
       ts_res <- merge(ts_whole, ts_clim, all = TRUE)
@@ -200,5 +213,6 @@ ts2clm <-
       names(ts_res)[2] <- paste(substitute(x))
       names(ts_res)[3] <- paste(substitute(y))
       return(ts_res)
+
     }
   }
