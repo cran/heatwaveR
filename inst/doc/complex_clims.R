@@ -5,6 +5,7 @@ knitr::opts_chunk$set(fig.width = 8, fig.height = 3, fig.align = 'centre',
 
 ## ----load-libs-----------------------------------------------------------
 library(tidyverse)
+library(ggpubr)
 library(heatwaveR)
 
 ## ----data-prep-----------------------------------------------------------
@@ -45,7 +46,7 @@ ts_clims <- left_join(tMax_event_climatology, tMin_exc_threshold, by = c("t"))
 
 # Remove all days that did not qualify for exceddence()
 ts_clims_filtered <- ts_clims %>%
-  filter(event.y == TRUE)
+  filter(exceedance == TRUE)
 
 ## ------------------------------------------------------------------------
 # Calculate number of days for each event above the 25C threshold
@@ -94,4 +95,31 @@ lolli_plot(ts_filtered_list, event_count = 1)
 ## ----category------------------------------------------------------------
 ts_category <- category(ts_filtered_list, name = "WA")
 ts_category
+
+## ------------------------------------------------------------------------
+# First we calculate the exceedance as desired
+thresh_19 <- exceedance(sst_Med, threshold = 19, minDuration = 10, maxGap = 0)$threshold
+
+# Then we use that output when detecting our events
+events_19 <- detect_event(ts2clm(sst_Med, climatologyPeriod = c("1982-01-01", "2011-12-31")), 
+                                 threshClim2 = thresh_19$exceedance, minDuration2 = 10, maxGap2 = 0)
+
+## ------------------------------------------------------------------------
+# The default output
+events_default <- detect_event(ts2clm(sst_Med, climatologyPeriod = c("1982-01-01", "2011-12-31")))
+
+ggarrange(lolli_plot(events_19), lolli_plot(events_default), labels = c("Two thresholds", "One threshold"))
+
+## ------------------------------------------------------------------------
+# First we calculate the second threshold
+thresh_95 <- detect_event(ts2clm(sst_Med, pctile = 95,
+                                 climatologyPeriod = c("1982-01-01", "2011-12-31")), 
+                          minDuration = 2, maxGap = 0)$climatology
+
+# Then we use that output when detecting our events
+events_95 <- detect_event(ts2clm(sst_Med, climatologyPeriod = c("1982-01-01", "2011-12-31")), 
+                          threshClim2 = thresh_95$event, minDuration2 = 2, maxGap2 = 0)
+
+## ------------------------------------------------------------------------
+ggarrange(lolli_plot(events_95), lolli_plot(events_default), labels = c("Two thresholds", "One threshold"))
 

@@ -76,21 +76,38 @@ make_whole_fast <- function(data, x = t, y = temp) {
   temp <- NULL
   feb28 <- 59
 
-  ts_x <- eval(substitute(x), data)
+  ts_x <- eval(substitute(x), data) # this line and the next might not be needed
   ts_y <- eval(substitute(y), data)
+  rm(data)
 
-  v_date <- as.Date(ts_x)
+  # create full, complete time series for joing against
+  date_strt <- lubridate::ymd(utils::head(ts_x, 1))
+  date_end <- lubridate::ymd(utils::tail(ts_x, 1))
+  ts_full <- data.table::data.table(ts_x = seq.Date(date_strt, date_end, "day"))
+  data.table::setkey(ts_full, ts_x)
+
+  # reassemble the data.table
+  ts_xy <- data.table::data.table(ts_x = as.Date(ts_x),
+                                  ts_y = ts_y)
+  data.table::setkey(ts_xy, ts_x)
+
+  # left join
+  ts_merged <- dplyr::left_join(ts_full, ts_xy)
+  rm(ts_full); rm(ts_xy)
+
+  v_date <- as.Date(ts_merged$ts_x)
   v_doy <- lubridate::yday(v_date)
   v_doy <- as.integer(ifelse(
-    lubridate::leap_year(lubridate::year(ts_x)) == FALSE,
+    lubridate::leap_year(lubridate::year(ts_merged$ts_x)) == FALSE,
     ifelse(v_doy > feb28, v_doy + 1, v_doy),
     v_doy)
   )
-  v_ts_y <- as.numeric(ts_y)
+  v_ts_y <- as.numeric(ts_merged$ts_y)
 
   t_series <- data.table::data.table(doy = v_doy,
                                      date = v_date,
                                      ts_y = v_ts_y)
+  rm(v_date); rm(v_doy); rm(v_ts_y)
 
   names(t_series)[2] <- paste(substitute(x))
   names(t_series)[3] <- paste(substitute(y))

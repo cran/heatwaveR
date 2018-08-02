@@ -193,4 +193,3 @@ ggsave(file = "README-grid-example2.png", width = 6, height = 3.2)
 <!-- ![](README-grid-example1.png){width=100%} -->
 
 <!-- ![](README-grid-example2.png){width=100%} -->
-

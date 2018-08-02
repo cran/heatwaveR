@@ -29,21 +29,35 @@ clim_spread <- function(data, clim_start, clim_end, windowHalfWidth) {
 
   ts_x <- ts_y <- NULL
 
-  ts_whole <- data[ts_x %between% c(clim_start, clim_end)]
-  data.table::setDT(ts_whole)[, ts_x := format(as.Date(ts_x), "%Y") ]
-  ts_spread <- data.table::dcast(ts_whole, doy ~ ts_x, value.var = "ts_y")
+  ts_clim <- data[ts_x %between% c(clim_start, clim_end)]
+  rm(data)
+
+  data.table::setDT(ts_clim)[, ts_x := format(as.Date(ts_x), "%Y") ]
+  ts_spread <- data.table::dcast(ts_clim, doy ~ ts_x, value.var = "ts_y")
+  rm(ts_clim)
+
   ts_spread_filled <- data.table::data.table((sapply(ts_spread[59:61, ],
                                                      function(x) .NA2mean(x))))
   ts_spread[60, ] <- ts_spread_filled[2, ]
+  rm(ts_spread_filled)
 
   begin_pad <- utils::tail(ts_spread, windowHalfWidth)
   end_pad <- utils::head(ts_spread, windowHalfWidth)
   l <- list(begin_pad, ts_spread, end_pad)
+  rm(begin_pad); rm(end_pad)
+
   ts_spread <- data.table::rbindlist(l)
+  rm(l)
 
   len_yr <- length(lubridate::year(clim_start):lubridate::year(clim_end))
 
   # clim_calc_cpp needs a matrix...
   ts_mat <- as.matrix(ts_spread)[, 2:(len_yr + 1)]
+
+  if (nrow(stats::na.omit(ts_mat)) < nrow(ts_mat)) {
+    plugs <- which(is.na(ts_mat), arr.ind = TRUE)
+    ts_mat[plugs] <- rowMeans(ts_mat, na.rm = TRUE)[plugs[,1]]
+  }
+
   return(ts_mat)
 }

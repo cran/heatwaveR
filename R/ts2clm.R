@@ -152,10 +152,14 @@ ts2clm <-
     if(!(is.logical(clmOnly)))
       stop("Please ensure that 'clmOnly' is either TRUE or FALSE.")
 
+    clim_start <- climatologyPeriod[1]
+    clim_end <- climatologyPeriod[2]
     doy <- temp <- NULL
 
     ts_x <- eval(substitute(x), data)
     ts_y <- eval(substitute(y), data)
+    rm(data)
+
     ts_xy <- data.table::data.table(ts_x, ts_y)
     rm(ts_x); rm(ts_y)
 
@@ -169,17 +173,17 @@ ts2clm <-
 
     }
 
-    ts_whole <- na_interp(doy = ts_whole$doy,
-                          x = ts_whole$ts_x,
-                          y = ts_whole$ts_y,
-                          maxPadLength = maxPadLength)
+    if (length(stats::na.omit(ts_whole$ts_y)) < length(ts_whole$ts_y)){
+      ts_whole <- na_interp(doy = ts_whole$doy,
+                            x = ts_whole$ts_x,
+                            y = ts_whole$ts_y,
+                            maxPadLength = maxPadLength)
+    }
 
-    clim_start <- climatologyPeriod[1]
     if (ts_whole$ts_x[1] > clim_start)
       stop(paste("The specified start date precedes the first day of series, which is",
                  ts_whole$ts_x[1]))
 
-    clim_end <- climatologyPeriod[2]
     if (clim_end > ts_whole$ts_x[nrow(ts_whole)])
       stop(paste("The specified end date follows the last day of series, which is",
                  ts_whole$ts_x[nrow(ts_whole)]))
@@ -188,7 +192,9 @@ ts2clm <-
       stop("The climatologyPeriod must be at least three years to calculate thresholds")
 
     ts_wide <- clim_spread(ts_whole, clim_start, clim_end, windowHalfWidth)
+
     ts_mat <- clim_calc_cpp(ts_wide, windowHalfWidth, pctile)
+    rm(ts_wide)
 
     if (smoothPercentile) {
 
@@ -199,6 +205,7 @@ ts2clm <-
       ts_clim <- data.table::data.table(ts_mat)
 
     }
+    rm(ts_mat)
 
     if (clmOnly) {
 
@@ -209,6 +216,7 @@ ts2clm <-
       data.table::setkey(ts_whole, doy)
       data.table::setkey(ts_clim, doy)
       ts_res <- merge(ts_whole, ts_clim, all = TRUE)
+      rm(ts_whole); rm(ts_clim)
       data.table::setorder(ts_res, ts_x)
       names(ts_res)[2] <- paste(substitute(x))
       names(ts_res)[3] <- paste(substitute(y))
