@@ -14,11 +14,11 @@ exc_25 <- exceedance(sst_WA, threshold = 25)
 # Look at a few metrics
 exc_25$exceedance %>%
   ungroup() %>%
-  select(exceedance_no, duration, date_start, date_peak, intensity_mean, intensity_cumulative) %>%
+  select(exceedance_no, duration, date_start, date_peak, intensity_max, intensity_cumulative) %>%
   dplyr::arrange(-intensity_cumulative) %>%
   head(5)
 
-## ----fig-example8, echo = TRUE, eval = TRUE------------------------------
+## ----fig-example1, echo = TRUE, eval = TRUE------------------------------
 exc_25_thresh <- exc_25$threshold %>% 
   slice(9500:9866)
 
@@ -41,7 +41,7 @@ exc_19$exceedance %>%
   dplyr::arrange(intensity_cumulative) %>%
   head(5)
 
-## ----fig-example9, echo = TRUE, eval = TRUE------------------------------
+## ----fig-example2, echo = TRUE, eval = TRUE------------------------------
 exc_19_thresh <- exc_19$threshold %>% 
   slice(1500:1866)
 

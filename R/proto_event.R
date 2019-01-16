@@ -1,8 +1,7 @@
 #' Detect proto-events based on a chosen criterion (column).
 #'
-#' An internal function that detects proto-events, which are periods of
-#' time above a threshold, but without necessarily considering a minimum
-#' duration or joining across gaps.
+#' An internal function that detects the events according to the heatwave
+#' definition, and joins across the gaps if desired.
 #'
 #' @importFrom dplyr %>%
 #'
@@ -16,8 +15,9 @@
 #' @param maxGap This is the number of rows (days) across which distinct
 #' events will be combined into one event if \code{joinAcrossGaps = TRUE}.
 #'
-#' @return A dataframe that will be used within
-#' \code{\link{detect_event}}.
+#' @return A dataframe that will be used within \code{\link{detect_event}},
+#' or which can be returned by \code{\link{detect_event}} if the switch
+#' 'protoEvent' is specified as TRUE.
 #'
 #' @author Albertus J. Smit, Robert W. Schlegel
 #'
@@ -35,12 +35,23 @@ proto_event <- function(t_series,
 
   proto_events <- do.call(rbind,
                           lapply(s1[ex1$values == TRUE], function(x)
-                            data.table::data.table(index_start = min(x), index_end = max(x))))
-  proto_events$duration <- proto_events$index_end - proto_events$index_start + 1
-  proto_events <- proto_events[duration >= minDuration, ]
+                            data.table::data.table(index_start = min(x),
+                                                   index_end = max(x))))
+  duration <- proto_events$index_end - proto_events$index_start + 1
 
-  if (length(proto_events$index_start) == 0)
-    stop("not enough consecutive days above the threshold(s) to detect any events")
+  suppressWarnings(
+  if (is.null(proto_events) | max(duration) < minDuration){
+    res <- data.frame(t_series,
+                        durationCriterion = FALSE,
+                        event = FALSE,
+                        event_no = NA)
+      return(res)
+  } else {
+    proto_events$duration <- duration
+  }
+  )
+
+  proto_events <- proto_events[duration >= minDuration, ]
 
   durationCriterion <- rep(FALSE, nrow(t_series))
   for (i in 1:nrow(proto_events)) {

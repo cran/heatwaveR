@@ -79,14 +79,14 @@ make_whole <- function(data, x = t, y = temp) {
     dplyr::summarise(ts_y = mean(ts_y, na.rm = TRUE)) %>%
     dplyr::ungroup()
   t_series <- zoo::zoo(dat$ts_y, dat$ts_x)
-  ser <-
-    data.frame(ts_x = seq(stats::start(t_series), stats::end(t_series), by = "1 day"))
+  ser <- data.frame(ts_x = seq(stats::start(t_series),
+                               stats::end(t_series), by = "1 day"))
   ser <- zoo::zoo(rep(NA, length(ser$ts_x)), order.by = ser$ts_x)
   t_series <- merge(ser, t_series)[, 2]
 
   t_series <- data.table::data.table(doy = lubridate::yday(t_series),
-                                 date = as.Date(as.POSIXct(t_series)),
-                                 ts_y = as.numeric(t_series))
+                                     date = as.Date(as.POSIXct(t_series)),
+                                     ts_y = as.numeric(t_series))
 
   t_series$doy <- as.integer(ifelse(
     lubridate::leap_year(lubridate::year(t_series$date)) == FALSE,

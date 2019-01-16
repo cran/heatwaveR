@@ -10,56 +10,286 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<meta name="author" content="AJ Smit" />
+<meta name="author" content="AJ Smit and Robert W Schlegel" />
 
-<meta name="date" content="2018-07-25" />
+<meta name="date" content="2019-01-16" />
 
-<title>Retrieval and processing of OISST data</title>
+<title>Downloading and Preparing OISST Data</title>
 
 
 
 <style type="text/css">code{white-space: pre;}</style>
-<style type="text/css">
-div.sourceCode { overflow-x: auto; }
-table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
-  margin: 0; padding: 0; vertical-align: baseline; border: none; }
-table.sourceCode { width: 100%; line-height: 100%; }
-td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
-td.sourceCode { padding-left: 5px; }
-code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
-code > span.dt { color: #902000; } /* DataType */
-code > span.dv { color: #40a070; } /* DecVal */
-code > span.bn { color: #40a070; } /* BaseN */
-code > span.fl { color: #40a070; } /* Float */
-code > span.ch { color: #4070a0; } /* Char */
-code > span.st { color: #4070a0; } /* String */
-code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
-code > span.ot { color: #007020; } /* Other */
-code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
-code > span.fu { color: #06287e; } /* Function */
-code > span.er { color: #ff0000; font-weight: bold; } /* Error */
-code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
-code > span.cn { color: #880000; } /* Constant */
-code > span.sc { color: #4070a0; } /* SpecialChar */
-code > span.vs { color: #4070a0; } /* VerbatimString */
-code > span.ss { color: #bb6688; } /* SpecialString */
-code > span.im { } /* Import */
-code > span.va { color: #19177c; } /* Variable */
-code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
-code > span.op { color: #666666; } /* Operator */
-code > span.bu { } /* BuiltIn */
-code > span.ex { } /* Extension */
-code > span.pp { color: #bc7a00; } /* Preprocessor */
-code > span.at { color: #7d9029; } /* Attribute */
-code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
-code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
-code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
-code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+<style type="text/css" data-origin="pandoc">
+a.sourceLine { display: inline-block; line-height: 1.25; }
+a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
+a.sourceLine:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+a.sourceLine { text-indent: -1em; padding-left: 1em; }
+}
+pre.numberSource a.sourceLine
+  { position: relative; left: -4em; }
+pre.numberSource a.sourceLine::before
+  { content: attr(data-line-number);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; pointer-events: all; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {  }
+@media screen {
+a.sourceLine::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+
 </style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    for (var j = 0; j < rules.length; j++) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' || rule.style.backgroundColor === '') continue;
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
 
 
 
-<link href="data:text/css;charset=utf-8,body%20%7B%0Abackground%2Dcolor%3A%20%23fff%3B%0Amargin%3A%201em%20auto%3B%0Amax%2Dwidth%3A%20700px%3B%0Aoverflow%3A%20visible%3B%0Apadding%2Dleft%3A%202em%3B%0Apadding%2Dright%3A%202em%3B%0Afont%2Dfamily%3A%20%22Open%20Sans%22%2C%20%22Helvetica%20Neue%22%2C%20Helvetica%2C%20Arial%2C%20sans%2Dserif%3B%0Afont%2Dsize%3A%2014px%3B%0Aline%2Dheight%3A%201%2E35%3B%0A%7D%0A%23header%20%7B%0Atext%2Dalign%3A%20center%3B%0A%7D%0A%23TOC%20%7B%0Aclear%3A%20both%3B%0Amargin%3A%200%200%2010px%2010px%3B%0Apadding%3A%204px%3B%0Awidth%3A%20400px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Aborder%2Dradius%3A%205px%3B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Afont%2Dsize%3A%2013px%3B%0Aline%2Dheight%3A%201%2E3%3B%0A%7D%0A%23TOC%20%2Etoctitle%20%7B%0Afont%2Dweight%3A%20bold%3B%0Afont%2Dsize%3A%2015px%3B%0Amargin%2Dleft%3A%205px%3B%0A%7D%0A%23TOC%20ul%20%7B%0Apadding%2Dleft%3A%2040px%3B%0Amargin%2Dleft%3A%20%2D1%2E5em%3B%0Amargin%2Dtop%3A%205px%3B%0Amargin%2Dbottom%3A%205px%3B%0A%7D%0A%23TOC%20ul%20ul%20%7B%0Amargin%2Dleft%3A%20%2D2em%3B%0A%7D%0A%23TOC%20li%20%7B%0Aline%2Dheight%3A%2016px%3B%0A%7D%0Atable%20%7B%0Amargin%3A%201em%20auto%3B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dcolor%3A%20%23DDDDDD%3B%0Aborder%2Dstyle%3A%20outset%3B%0Aborder%2Dcollapse%3A%20collapse%3B%0A%7D%0Atable%20th%20%7B%0Aborder%2Dwidth%3A%202px%3B%0Apadding%3A%205px%3B%0Aborder%2Dstyle%3A%20inset%3B%0A%7D%0Atable%20td%20%7B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dstyle%3A%20inset%3B%0Aline%2Dheight%3A%2018px%3B%0Apadding%3A%205px%205px%3B%0A%7D%0Atable%2C%20table%20th%2C%20table%20td%20%7B%0Aborder%2Dleft%2Dstyle%3A%20none%3B%0Aborder%2Dright%2Dstyle%3A%20none%3B%0A%7D%0Atable%20thead%2C%20table%20tr%2Eeven%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Ap%20%7B%0Amargin%3A%200%2E5em%200%3B%0A%7D%0Ablockquote%20%7B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Apadding%3A%200%2E25em%200%2E75em%3B%0A%7D%0Ahr%20%7B%0Aborder%2Dstyle%3A%20solid%3B%0Aborder%3A%20none%3B%0Aborder%2Dtop%3A%201px%20solid%20%23777%3B%0Amargin%3A%2028px%200%3B%0A%7D%0Adl%20%7B%0Amargin%2Dleft%3A%200%3B%0A%7D%0Adl%20dd%20%7B%0Amargin%2Dbottom%3A%2013px%3B%0Amargin%2Dleft%3A%2013px%3B%0A%7D%0Adl%20dt%20%7B%0Afont%2Dweight%3A%20bold%3B%0A%7D%0Aul%20%7B%0Amargin%2Dtop%3A%200%3B%0A%7D%0Aul%20li%20%7B%0Alist%2Dstyle%3A%20circle%20outside%3B%0A%7D%0Aul%20ul%20%7B%0Amargin%2Dbottom%3A%200%3B%0A%7D%0Apre%2C%20code%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0Aborder%2Dradius%3A%203px%3B%0Acolor%3A%20%23333%3B%0Awhite%2Dspace%3A%20pre%2Dwrap%3B%20%0A%7D%0Apre%20%7B%0Aborder%2Dradius%3A%203px%3B%0Amargin%3A%205px%200px%2010px%200px%3B%0Apadding%3A%2010px%3B%0A%7D%0Apre%3Anot%28%5Bclass%5D%29%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Acode%20%7B%0Afont%2Dfamily%3A%20Consolas%2C%20Monaco%2C%20%27Courier%20New%27%2C%20monospace%3B%0Afont%2Dsize%3A%2085%25%3B%0A%7D%0Ap%20%3E%20code%2C%20li%20%3E%20code%20%7B%0Apadding%3A%202px%200px%3B%0A%7D%0Adiv%2Efigure%20%7B%0Atext%2Dalign%3A%20center%3B%0A%7D%0Aimg%20%7B%0Abackground%2Dcolor%3A%20%23FFFFFF%3B%0Apadding%3A%202px%3B%0Aborder%3A%201px%20solid%20%23DDDDDD%3B%0Aborder%2Dradius%3A%203px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Amargin%3A%200%205px%3B%0A%7D%0Ah1%20%7B%0Amargin%2Dtop%3A%200%3B%0Afont%2Dsize%3A%2035px%3B%0Aline%2Dheight%3A%2040px%3B%0A%7D%0Ah2%20%7B%0Aborder%2Dbottom%3A%204px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Apadding%2Dbottom%3A%202px%3B%0Afont%2Dsize%3A%20145%25%3B%0A%7D%0Ah3%20%7B%0Aborder%2Dbottom%3A%202px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Afont%2Dsize%3A%20120%25%3B%0A%7D%0Ah4%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23f7f7f7%3B%0Amargin%2Dleft%3A%208px%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Ah5%2C%20h6%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23ccc%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Aa%20%7B%0Acolor%3A%20%230033dd%3B%0Atext%2Ddecoration%3A%20none%3B%0A%7D%0Aa%3Ahover%20%7B%0Acolor%3A%20%236666ff%3B%20%7D%0Aa%3Avisited%20%7B%0Acolor%3A%20%23800080%3B%20%7D%0Aa%3Avisited%3Ahover%20%7B%0Acolor%3A%20%23BB00BB%3B%20%7D%0Aa%5Bhref%5E%3D%22http%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0Aa%5Bhref%5E%3D%22https%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0A%0Acode%20%3E%20span%2Ekw%20%7B%20color%3A%20%23555%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Edt%20%7B%20color%3A%20%23902000%3B%20%7D%20%0Acode%20%3E%20span%2Edv%20%7B%20color%3A%20%2340a070%3B%20%7D%20%0Acode%20%3E%20span%2Ebn%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Efl%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Ech%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Est%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Eco%20%7B%20color%3A%20%23888888%3B%20font%2Dstyle%3A%20italic%3B%20%7D%20%0Acode%20%3E%20span%2Eot%20%7B%20color%3A%20%23007020%3B%20%7D%20%0Acode%20%3E%20span%2Eal%20%7B%20color%3A%20%23ff0000%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Efu%20%7B%20color%3A%20%23900%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%20code%20%3E%20span%2Eer%20%7B%20color%3A%20%23a61717%3B%20background%2Dcolor%3A%20%23e3d2d2%3B%20%7D%20%0A" rel="stylesheet" type="text/css" />
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#header {
+text-align: center;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
 
 </head>
 
@@ -68,223 +298,87 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 
 
-<h1 class="title toc-ignore">Retrieval and processing of OISST data</h1>
-<h4 class="author"><em>AJ Smit</em></h4>
-<h4 class="date"><em>2018-07-25</em></h4>
+<h1 class="title toc-ignore">Downloading and Preparing OISST Data</h1>
+<h4 class="author"><em>AJ Smit and Robert W Schlegel</em></h4>
+<h4 class="date"><em>2019-01-16</em></h4>
 
 
 
 <div id="overview" class="section level2">
 <h2>Overview</h2>
-<p>In this vignette we shall look at retrieving and processing the <a href="https://journals.ametsoc.org/doi/full/10.1175/2007JCLI1824.1">Reynolds optimally interpolated sea surface temperature</a> (OISST), which is a global data set of Advanced Very High Resolution Radiometer (AVHRR) derived SSTs at a daily resolution, starting on 1 September 1981. The source of the data is the <a href="https://podaac.jpl.nasa.gov/">Physical Oceanography Distributed Active Archive Centre (PODAAC)</a>.</p>
-<!-- ![**Figure 1.** OISST data plotted on a Gnomic Cubic Sphere projection thanks to [Panoply](https://www.giss.nasa.gov/tools/panoply/)---the link to certain religious iconography is purely coincidental. The SST field is filled using the Parula colour scale.](avhrr-only-v2.19810901.png){width=100%} -->
-<p>Each global, daily file is around 8.3Mb, so they add up to a large amount of data when a time series of at least 30 years duration is downloaded. A time series of at least 30 years is needed for heatwave detection. Currently I have 13,216 of these global files, and this amounts to ~108Gb of total disk space. Since not everyone will need all of these data, we shall subset the data using a python script prior to downloading them.</p>
+<p>In this vignette we will see how to retrieve and prepare <a href="https://journals.ametsoc.org/doi/full/10.1175/2007JCLI1824.1">Reynolds optimally interpolated sea surface temperature</a> (OISST) data for calculating marine heatwaves (MHWs). The OISST product is a global 1/4 degree gridded dataset of Advanced Very High Resolution Radiometer (AVHRR) derived SSTs at a daily resolution, starting on 1 September 1981. The source of the data is currently the <a href="https://www.ncdc.noaa.gov/oisst">NOAA NCDC</a>.</p>
+<p>Each global, daily file is around 8.3 MB, so they add up to a large amount of data when a time series of at least 30 years duration is downloaded. Remember that a time series of at least 30 years is needed for heatwave detection. If one were to download all of the data currently available it would now be much larger than 100 GB of total disk space. So it is therefore advantageous to download only a a subset of data. Thanks to the <strong><code>rerddap</code></strong> package this is now easy to do.</p>
 </div>
-<div id="subsetting-using-a-python-script" class="section level2">
-<h2>Subsetting using a python script</h2>
-<p>To do the subsetting and bring the data to your local computer/server, you will need access to <strong>python 2.7</strong> with <strong>numpy</strong>. Make sure it is installed on your system and visible on the system PATH.</p>
-<p>Create a folder on your server where all the data will be received, below, for example, I use <code>/Users/ajsmit/spatial/test/netCDF</code>.</p>
-<p>Into this directory, copy the python script, <code>subset_dataset.py</code> (<a href="https://podaac.jpl.nasa.gov/forum/viewtopic.php?f=5&amp;t=219">link</a>). Remember to make the file executable by running <code>chmod +x subset_dataset.py</code>. I use MacOS X (or linux), so I’m not able to provide instructions if you use Windows. In a terminal, change to the directory that will receive the netCDF files, where the python script now lives. If python is in your system’s path, you should be able to execute the following command on the terminal/command line at the prompt <code>&gt;</code>:</p>
-<p><code>&gt; ./subset_dataset.py -s 19810901 -f 20171014 -b 6.25 45 -45 -20 -x AVHRR_OI-NCEI-L4-GLOB-v2.0</code></p>
-<p>Encapsulated by the above command are the following parameters:</p>
-<ul>
-<li>long.min = 6.25</li>
-<li>long.max = 45</li>
-<li>lat.min = -45</li>
-<li>lat.max = -20</li>
-<li>start.date = 1981-09-01</li>
-<li>end.date = 2017-10-14</li>
-<li>short.name = AVHRR_OI-NCEI-L4-GLOB-v2.0</li>
-</ul>
-<p>The spatial extent is for the Agulhas Current region around South Africa; we select files starting in 1981-09-01 and going up to 2017-10-19. The short name is the name mentioned on the <a href="https://podaac.jpl.nasa.gov/dataset/AVHRR_OI-NCEI-L4-GLOB-v2.0">Reynolds OISST data website</a>—substituting this name for any of the other SST datasets on that website <em>should</em> then permit the retrieval of other data sets (e.g. the <a href="https://podaac.jpl.nasa.gov/dataset/MUR-JPL-L4-GLOB-v4.1">MUR data’s</a> short name is MUR-JPL-L4-GLOB-v4.1).</p>
-<p>Adjust any of these parameters to taste in order to define the spatial extent and the time period as required by your study.</p>
-<p>If everything works according to plan, a bunch of data will now be downloaded. This might take several hours. There will be one netCDF file for each day of the study period. In later steps in R we shall combine them into one <code>.csv</code> file, and then do some other processing steps on them to extract the heat waves.</p>
+<div id="downloading-data" class="section level2">
+<h2>Downloading data</h2>
+<p>Thanks to some recent developments in access capabilities to the data generated by the environmental observation organisations in the United States it is now much easier to access their data. For the purposes of this vignette we will be accessing the NOAA OISST data hosted on this <a href="https://www.ncei.noaa.gov/erddap/griddap/ncdc_oisst_v2_avhrr_by_time_zlev_lat_lon.html">ERDDAP web interface</a>. One may download the data there manually using the remarkably user friendly web interface, or use the <strong><code>rerddap</code></strong> package to do the same through R.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="co"># The three packages we will need</span></a>
+<a class="sourceLine" id="cb1-2" data-line-number="2"><span class="kw">library</span>(dplyr)</a>
+<a class="sourceLine" id="cb1-3" data-line-number="3"><span class="kw">library</span>(rerddap)</a>
+<a class="sourceLine" id="cb1-4" data-line-number="4"><span class="kw">library</span>(ncdf4)</a>
+<a class="sourceLine" id="cb1-5" data-line-number="5"></a>
+<a class="sourceLine" id="cb1-6" data-line-number="6"><span class="co"># The information for the NOAA OISST data</span></a>
+<a class="sourceLine" id="cb1-7" data-line-number="7"><span class="kw">info</span>(<span class="dt">datasetid =</span> <span class="st">&quot;ncdc_oisst_v2_avhrr_by_time_zlev_lat_lon&quot;</span>, <span class="dt">url =</span> <span class="st">&quot;https://www.ncei.noaa.gov/erddap/&quot;</span>)</a></code></pre></div>
+<p>With our packages loaded and our target dataset identified, we may now simply download it with <code>griddap()</code>. While putting this vignette together however I noticed one little hiccup in the work flow. It seems that the ERDDAP server does not like it when one tries to access more than nine consecutive years of data in one request, regardless of the spatial extent being requested. So before we download our data we are going to make a small wrapper function that we can tell the range of times we want to download. This will reduce the amount of redundant coding we would otherwise need to do.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" data-line-number="1"><span class="co"># This function expects the user to provide it with two values </span></a>
+<a class="sourceLine" id="cb2-2" data-line-number="2"><span class="co"># that match the time format of the target OISST dataset</span></a>
+<a class="sourceLine" id="cb2-3" data-line-number="3">OISST_sub &lt;-<span class="st"> </span><span class="cf">function</span>(times){</a>
+<a class="sourceLine" id="cb2-4" data-line-number="4">  oisst_res &lt;-<span class="st"> </span><span class="kw">griddap</span>(<span class="dt">x =</span> <span class="st">&quot;ncdc_oisst_v2_avhrr_by_time_zlev_lat_lon&quot;</span>, </a>
+<a class="sourceLine" id="cb2-5" data-line-number="5">                       <span class="dt">url =</span> <span class="st">&quot;https://www.ncei.noaa.gov/erddap/&quot;</span>, </a>
+<a class="sourceLine" id="cb2-6" data-line-number="6">                        <span class="dt">time =</span> times, </a>
+<a class="sourceLine" id="cb2-7" data-line-number="7">                        <span class="dt">depth =</span> <span class="kw">c</span>(<span class="dv">0</span>, <span class="dv">0</span>),</a>
+<a class="sourceLine" id="cb2-8" data-line-number="8">                        <span class="dt">latitude =</span> <span class="kw">c</span>(<span class="op">-</span><span class="dv">40</span>, <span class="dv">-35</span>),</a>
+<a class="sourceLine" id="cb2-9" data-line-number="9">                        <span class="dt">longitude =</span> <span class="kw">c</span>(<span class="dv">15</span>, <span class="dv">21</span>),</a>
+<a class="sourceLine" id="cb2-10" data-line-number="10">                        <span class="dt">fields =</span> <span class="st">&quot;sst&quot;</span>)</a>
+<a class="sourceLine" id="cb2-11" data-line-number="11">}</a></code></pre></div>
+<p>In the wrapper function above we see that we have chosen to download only the ‘sst’ data out of the several variables available to us. We also see that we have chosen the spatial extent of latitude -40 to -35 and longitude 15 to 21. This a small window over some of the Agulhas Retroflection to the south west of the coastline of South Africa. A larger area is not being chosen here simply due to the speed constraints of downloading the data and detecting the events therein. One may change the lon/lat values above as is necessary to match a desired study area.</p>
+<p>With our wrapper function written we now run it a few times in order to grab all of the available OISST data as of the writing of this vignette. Each one of the files below is ~7.0 MB. Regardless of the size of the file, the overall download time doesn’t differ by much. It appears that the bottle neck is somewhere on the ERDDAP server.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" data-line-number="1">OISST1 &lt;-<span class="st"> </span><span class="kw">OISST_sub</span>(<span class="kw">c</span>(<span class="st">&quot;1981-09-01T00:00:00Z&quot;</span>, <span class="st">&quot;1990-12-31T00:00:00Z&quot;</span>))</a>
+<a class="sourceLine" id="cb3-2" data-line-number="2">OISST2 &lt;-<span class="st"> </span><span class="kw">OISST_sub</span>(<span class="kw">c</span>(<span class="st">&quot;1991-01-01T00:00:00Z&quot;</span>, <span class="st">&quot;1999-12-31T00:00:00Z&quot;</span>))</a>
+<a class="sourceLine" id="cb3-3" data-line-number="3">OISST3 &lt;-<span class="st"> </span><span class="kw">OISST_sub</span>(<span class="kw">c</span>(<span class="st">&quot;2000-01-01T00:00:00Z&quot;</span>, <span class="st">&quot;2008-12-31T00:00:00Z&quot;</span>))</a>
+<a class="sourceLine" id="cb3-4" data-line-number="4">OISST4 &lt;-<span class="st"> </span><span class="kw">OISST_sub</span>(<span class="kw">c</span>(<span class="st">&quot;2009-01-01T00:00:00Z&quot;</span>, <span class="st">&quot;2013-12-03T00:00:00Z&quot;</span>))</a>
+<a class="sourceLine" id="cb3-5" data-line-number="5">OISST5 &lt;-<span class="st"> </span><span class="kw">OISST_sub</span>(<span class="kw">c</span>(<span class="st">&quot;2014-01-01T00:00:00Z&quot;</span>, <span class="st">&quot;2018-12-03T00:00:00Z&quot;</span>))</a></code></pre></div>
+<p>It is worth pointing out here that these data are downloaded as cached files on the users computer by using the <strong><code>hoardr</code></strong> package. This means that if one runs the same command again, it will not re-download the data again because it first looks in the folder where it has automatically cached the data for you and sees that it may simply draw the data from there. This is remarkably convenient as it means that re-running this same code will load the data that have already been downloaded. No need to change anything or write a second script for loading data.</p>
 </div>
-<div id="extracting-the-sst-data" class="section level2">
-<h2>Extracting the SST data</h2>
-<p>There are many ways to approach this problem, and the one I take here is to produce an intermediate <code>.csv</code> file that has all the data for the region/period of interest—all of it in one file. For the subregion/period defined by the python subsetting function, above, this combined file weighs in at 4.88Gb. This might not be the most efficient way to deal with the problem, but I like having this intermediate <code>.csv</code> file on hand as I subject these data to several other processing steps besides marine heat wave detection.</p>
-<p>Here is a set of steps that does the job for me:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># generic_netCDF2csv.R</span>
-
-
-<span class="co"># NOTES ON USING THIS SCRIPT ----------------------------------------------</span>
-
-<span class="co"># 1. The Reynolds OISST v2 data processed by this script can be retrieved from:</span>
-<span class="co"># https://podaac.jpl.nasa.gov/dataset/AVHRR_OI-NCEI-L4-GLOB-v2.0</span>
-<span class="co"># 2. Subsetting and the selection of the time steps to be done via the python</span>
-<span class="co"># script `subset_dataset.py`.</span>
-<span class="co"># 3. This R script requires the already subsetted netCDFs to reside inside a</span>
-<span class="co"># directory whose path is specified by `nc.dir`, below.</span>
-<span class="co"># 4. The .csv files produced will be placed inside of the directory named by</span>
-<span class="co"># `csv.dir` (make sure this directory already exists).</span>
-<span class="co"># 5. The dates that will be included with the final .csv file will be extracted</span>
-<span class="co"># directly from the names of the daily netCDF files; please, therefore, make</span>
-<span class="co"># sure to never change them by manually editing them.</span>
-<span class="co"># 6. The base name of the new .csv file will be partly based on the name of the</span>
-<span class="co"># input netCDF files, with the start and end dates appended at the end. These</span>
-<span class="co"># things are hard coded into the script below.</span>
-<span class="co"># 7. I am sure I have missed some things, or that some things may break somehow;</span>
-<span class="co"># please let me know if this happens and I shall fix it.</span>
-<span class="co"># 8. This file may take a while to run (10s of minutes to hours, depending on</span>
-<span class="co"># the amount of data processed); please be patient while it does its thing.</span>
-
-<span class="co"># Author: AJ Smit</span>
-<span class="co"># Date: 27 April 2018</span>
-<span class="co"># e-mail: ajsmit@uwc.ac.za</span>
-
-
-<span class="co"># </span><span class="al">CAUTION</span><span class="co"> -----------------------------------------------------------------</span>
-
-<span class="co"># This function will append data to the end of an existing file that had been</span>
-<span class="co"># previously produced by this script. This will result in duplicate data. If you</span>
-<span class="co"># need to rerun the script for some reason, please make sure to delete the file</span>
-<span class="co"># created as the result of the previous run from the `csv.dir`.</span>
-
-
-<span class="co"># LOAD LIBRARIES ----------------------------------------------------------</span>
-
-<span class="kw">library</span>(ncdf4) <span class="co"># library for processing netCDFs</span>
-<span class="kw">library</span>(data.table) <span class="co"># for fast .csv write function, `fwrite()`</span>
-<span class="kw">library</span>(tidyverse) <span class="co"># misc. data processing conveniences</span>
-<span class="kw">library</span>(reshape2) <span class="co"># for making a long data format</span>
-<span class="kw">library</span>(plyr) <span class="co"># for `llply()`</span>
-<span class="kw">library</span>(lubridate) <span class="co"># for working with dates</span>
-<span class="kw">library</span>(stringr) <span class="co"># for working with strings</span>
-<span class="kw">library</span>(doMC); doMC<span class="op">::</span><span class="kw">registerDoMC</span>(<span class="dt">cores =</span> <span class="dv">4</span>) <span class="co"># for multicore spead-ups</span>
-
-
-<span class="co"># SPECIFY FILE PATHS ------------------------------------------------------</span>
-
-<span class="co"># Setup OISST netCDF data path and csv file output directory</span>
-nc.dir &lt;-<span class="st"> &quot;/Users/ajsmit/spatial/test/netCDF&quot;</span>
-csv.dir &lt;-<span class="st"> &quot;/Users/ajsmit/spatial/test/csv&quot;</span>
-
-
-<span class="co"># PARSE FILE INFO (not used directly) -------------------------------------</span>
-
-<span class="co"># Use to determine the start/end points of the `name.stem` (see code below)</span>
-<span class="co">#          1         2         3         4         5         6         7</span>
-<span class="co"># 123456789012345678901234567890123456789012345678901234567890123456789012345</span>
-<span class="co"># 20091231120000-NCEI-L4_GHRSST-SSTblend-AVHRR_OI-GLOB-v02.0-fv02.0_subset.nc</span>
-
-
-<span class="co"># OISST netCDF READ FUNCTION ----------------------------------------------</span>
-
-<span class="co"># Function to extract the dims and data from OISST netCDFs</span>
-ncRead &lt;-<span class="st"> </span><span class="cf">function</span>(<span class="dt">nc.dir =</span> nc.dir, <span class="dt">csv.dir =</span> csv.dir) {
-  nc.list &lt;-<span class="st"> </span><span class="kw">list.files</span>(<span class="dt">path =</span> nc.dir, <span class="dt">pattern =</span> <span class="st">&quot;*.nc&quot;</span>, <span class="dt">full.names =</span> <span class="ot">TRUE</span>, <span class="dt">include.dirs =</span> <span class="ot">TRUE</span>)
-  strt.date &lt;-<span class="st"> </span><span class="kw">str_sub</span>(<span class="kw">basename</span>(nc.list[<span class="dv">1</span>]), <span class="dt">start =</span> <span class="dv">1</span>, <span class="dt">end =</span> <span class="dv">8</span>)
-  end.date &lt;-<span class="st"> </span><span class="kw">str_sub</span>(<span class="kw">basename</span>(nc.list[<span class="kw">length</span>(nc.list)]), <span class="dt">start =</span> <span class="dv">1</span>, <span class="dt">end =</span> <span class="dv">8</span>)
-
-  ncFun &lt;-<span class="st"> </span><span class="cf">function</span>(<span class="dt">nc.file =</span> nc.file, <span class="dt">csv.dir =</span> csv.dir) {
-    nc &lt;-<span class="st"> </span><span class="kw">nc_open</span>(nc.file)
-    name.stem &lt;-<span class="st"> </span><span class="kw">substr</span>(<span class="kw">basename</span>(nc.file), <span class="dv">16</span>, <span class="dv">72</span>)
-    date.stamp &lt;-<span class="st"> </span><span class="kw">substr</span>(<span class="kw">basename</span>(nc.file), <span class="dv">1</span>, <span class="dv">8</span>)
-    sst &lt;-<span class="st"> </span><span class="kw">round</span>(<span class="kw">ncvar_get</span>(nc, <span class="dt">varid =</span> <span class="st">&quot;analysed_sst&quot;</span>), <span class="dv">4</span>)
-    <span class="kw">dimnames</span>(sst) &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="dt">lon =</span> nc<span class="op">$</span>dim<span class="op">$</span>lon<span class="op">$</span>vals,
-                          <span class="dt">lat =</span> nc<span class="op">$</span>dim<span class="op">$</span>lat<span class="op">$</span>vals)
-    <span class="kw">nc_close</span>(nc)
-    sst &lt;-
-<span class="st">      </span><span class="kw">as.data.frame</span>(<span class="kw">melt</span>(sst, <span class="dt">value.name =</span> <span class="st">&quot;temp&quot;</span>), <span class="dt">row.names =</span> <span class="ot">NULL</span>) <span class="op">%&gt;%</span>
-<span class="st">      </span><span class="kw">mutate</span>(<span class="dt">t =</span> <span class="kw">ymd</span>(date.stamp)) <span class="op">%&gt;%</span>
-<span class="st">      </span><span class="kw">na.omit</span>()
-    <span class="co"># Use data.table's `fwrite()` because it is much faster than anything else</span>
-    <span class="co"># for large csv files</span>
-    <span class="kw">fwrite</span>(sst,
-           <span class="dt">file =</span> <span class="kw">paste0</span>(csv.dir, <span class="st">&quot;/&quot;</span>, name.stem, <span class="st">&quot;-&quot;</span>, strt.date, <span class="st">&quot;-&quot;</span>, end.date, <span class="st">&quot;.csv&quot;</span>),
-           <span class="dt">append =</span> <span class="ot">TRUE</span>, <span class="dt">col.names =</span> <span class="ot">FALSE</span>)
-    <span class="kw">rm</span>(sst)
-  }
-  <span class="co"># `parallel = FALSE` allows for better error checking should something go wrong;</span>
-  <span class="co"># there's also a helpful progress bar that becomes available</span>
-  <span class="kw">llply</span>(nc.list, ncFun, <span class="dt">csv.dir =</span> csv.dir, <span class="dt">.parallel =</span> <span class="ot">FALSE</span>)
-}</code></pre></div>
-<p>Now I simply run this function:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># RUN THE FUNCTION --------------------------------------------------------</span>
-
-<span class="co"># If everything works according to plan, all that's required is to execute</span>
-<span class="co"># this line as is after specifying `nc.dir` and `csv.dir` paths, above</span>
-<span class="kw">system.time</span>(<span class="kw">ncRead</span>(nc.dir, csv.dir))</code></pre></div>
-</div>
-<div id="event-detection" class="section level2">
-<h2>Event detection</h2>
-<p>Now we shall detect the extreme heat events using the <strong>RmarineHeaWaves</strong> package (soon to be replaced with <strong>heatwaveR</strong>).</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># SET-UP SOME THINGS ------------------------------------------------------</span>
-
-csv.dir &lt;-<span class="st"> &quot;/Users/ajsmit/spatial/test/csv&quot;</span>
-
-<span class="co"># Specify the name of the file created by `system.time(ncRead(nc.dir, csv.dir))` in the</span>
-<span class="co"># `csv.dir` that was named above</span>
-csv.file &lt;-<span class="st"> &quot;NCEI-L4_GHRSST-SSTblend-AVHRR_OI-GLOB-v02.0-fv02.0_subset-19810901-20171014.csv&quot;</span>
-
-<span class="co"># Read in the data in the combined .csv file and assign column names;</span>
-<span class="co"># again using the data.table way (`fread()`), which is FAST...</span>
-sst.dat &lt;-<span class="st"> </span><span class="kw">fread</span>(<span class="kw">paste0</span>(csv.dir, <span class="st">&quot;/&quot;</span>, csv.file))
-<span class="kw">colnames</span>(sst.dat) &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;lon&quot;</span>, <span class="st">&quot;lat&quot;</span>, <span class="st">&quot;temp&quot;</span>, <span class="st">&quot;t&quot;</span>)
-
-
-<span class="co"># A FAST DATE FUNCTION ----------------------------------------------------</span>
-
-<span class="co"># This speeds the creation of the date vector up immensely</span>
-fastDate &lt;-<span class="st"> </span><span class="cf">function</span>(x, <span class="dt">tz =</span> <span class="ot">NULL</span>) {
-  <span class="kw">require</span>(fasttime)
-  <span class="kw">as.Date</span>(<span class="kw">fastPOSIXct</span>(x, <span class="dt">tz =</span> tz))
-}
-
-
-<span class="co"># APPLY FAST DATE FUNCTION ------------------------------------------------</span>
-
-sst.dat<span class="op">$</span>t &lt;-<span class="st"> </span><span class="kw">fastDate</span>(sst.dat<span class="op">$</span>t)
-
-
-<span class="co"># DETECT FUNCTION FOR GRIDDED DATA ----------------------------------------</span>
-
-<span class="co"># The `clim` switch selects either climatology or events as output;</span>
-<span class="co"># please provide your own date range in here</span>
-OISST_detect &lt;-<span class="st"> </span><span class="cf">function</span>(<span class="dt">dat =</span> data, <span class="dt">doy =</span> doy, <span class="dt">x =</span> t, <span class="dt">y =</span> temp,
-                         <span class="dt">warm =</span> <span class="ot">TRUE</span>, <span class="dt">clim =</span> <span class="ot">FALSE</span>,
-                         <span class="dt">climatology_start =</span> <span class="st">&quot;1983-01-01&quot;</span>,
-                         <span class="dt">climatology_end =</span> <span class="st">&quot;2012-12-31&quot;</span>) {
-  <span class="kw">require</span>(RmarineHeatWaves)
-  dat &lt;-<span class="st"> </span>dat[,<span class="dv">3</span><span class="op">:</span><span class="dv">4</span>] <span class="co"># hard-code cols with temp and date</span>
-  whole &lt;-<span class="st"> </span><span class="kw">make_whole</span>(dat)
-  <span class="cf">if</span> (warm) {
-    out &lt;-<span class="st"> </span><span class="kw">detect</span>(whole, <span class="dt">min_duration =</span> <span class="dv">5</span>, <span class="dt">max_gap =</span> <span class="dv">2</span>, <span class="dt">cold_spells =</span> <span class="ot">FALSE</span>,
-                  <span class="dt">climatology_start =</span> climatology_start,
-                  <span class="dt">climatology_end =</span> climatology_end)
-  } <span class="cf">else</span> {
-    out &lt;-<span class="st"> </span><span class="kw">detect</span>(whole, <span class="dt">min_duration =</span> <span class="dv">5</span>, <span class="dt">max_gap =</span> <span class="dv">2</span>, <span class="dt">cold_spells =</span> <span class="ot">TRUE</span>,
-                  <span class="dt">climatology_start =</span> climatology_start,
-                  <span class="dt">climatology_end =</span> climatology_end)
-  }
-  <span class="cf">if</span> (clim) {
-    clim &lt;-<span class="st"> </span>out<span class="op">$</span>clim
-    <span class="kw">return</span>(clim)
-  } <span class="cf">else</span> {
-    event &lt;-<span class="st"> </span>out<span class="op">$</span>event
-    <span class="kw">return</span>(event)
-  }
-}
-
-
-<span class="co"># DETECT EVENTS! ----------------------------------------------------------</span>
-
-events &lt;-<span class="st"> </span><span class="kw">as_tibble</span>(<span class="kw">ddply</span>(sst.dat, .(lon, lat), OISST_detect,
-                          <span class="dt">warm =</span> <span class="ot">TRUE</span>, <span class="dt">clim =</span> <span class="ot">FALSE</span>,
-                          <span class="dt">.parallel =</span> <span class="ot">FALSE</span>, <span class="dt">.progress =</span> <span class="st">&quot;text&quot;</span>))
-
-
-<span class="co"># SAVE AND CLEAN UP -------------------------------------------------------</span>
-event.dir &lt;-<span class="st"> &quot;/Users/ajsmit/spatial/test/events&quot;</span>
-
-<span class="co"># Reuse the existing name; this ensures traceability of the files back to</span>
-<span class="co"># the input sources</span>
-event.file &lt;-<span class="st"> </span><span class="kw">gsub</span>(<span class="dt">pattern =</span> <span class="st">&quot;</span><span class="ch">\\</span><span class="st">.csv$&quot;</span>, <span class="st">&quot;&quot;</span>, csv.file)
-
-<span class="co"># Write the file out to disk</span>
-<span class="kw">fwrite</span>(events, <span class="dt">file =</span> <span class="kw">paste0</span>(<span class="st">&quot;event.dir&quot;</span>, <span class="st">&quot;/&quot;</span>, event.file, <span class="st">&quot;-events.csv&quot;</span>))
-<span class="kw">remove</span>(events); <span class="kw">remove</span>(sst.dat)</code></pre></div>
-<p>Please let me know if there are issues with the scripts, or if you have suggesations about how to improve them.</p>
+<div id="preparing-data" class="section level2">
+<h2>Preparing data</h2>
+<p>With our data downloaded we now want to pull the data out of their native NetCDF format and save them as R data files for ease of use later on. One must note here that depending on the RAM available on ones machine, it may not be possible to access all of the data within a NetCDF file at once if it is very large (e.g. &gt; 5 GB). The discussion on the limitations of the R language due to its dependence on virtual memory is beyond the scope of this vignette, but if one has chosen to only download the spatial extent laid out above one should not encounter any RAM issues.</p>
+<p>As we have downloaded our data in four separate pieces we will want to create another wrapper function to easily pull out the data before stitching the dataframes together and saving them as a single file.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb4-1" data-line-number="1">OISST_prep &lt;-<span class="st"> </span><span class="cf">function</span>(nc_file){</a>
+<a class="sourceLine" id="cb4-2" data-line-number="2">  </a>
+<a class="sourceLine" id="cb4-3" data-line-number="3">  <span class="co"># Open the NetCDF connection</span></a>
+<a class="sourceLine" id="cb4-4" data-line-number="4">  nc &lt;-<span class="st"> </span><span class="kw">nc_open</span>(nc_file<span class="op">$</span>summary<span class="op">$</span>filename)</a>
+<a class="sourceLine" id="cb4-5" data-line-number="5">  </a>
+<a class="sourceLine" id="cb4-6" data-line-number="6">  <span class="co"># Extract the SST values and add the lon/lat/time dimension names</span></a>
+<a class="sourceLine" id="cb4-7" data-line-number="7">  res &lt;-<span class="st"> </span><span class="kw">ncvar_get</span>(nc, <span class="dt">varid =</span> <span class="st">&quot;sst&quot;</span>)</a>
+<a class="sourceLine" id="cb4-8" data-line-number="8">  <span class="kw">dimnames</span>(res) &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="dt">lon =</span> nc<span class="op">$</span>dim<span class="op">$</span>longitude<span class="op">$</span>vals,</a>
+<a class="sourceLine" id="cb4-9" data-line-number="9">                        <span class="dt">lat =</span> nc<span class="op">$</span>dim<span class="op">$</span>latitude<span class="op">$</span>vals,</a>
+<a class="sourceLine" id="cb4-10" data-line-number="10">                        <span class="dt">t =</span> nc<span class="op">$</span>dim<span class="op">$</span>time<span class="op">$</span>vals)</a>
+<a class="sourceLine" id="cb4-11" data-line-number="11">  </a>
+<a class="sourceLine" id="cb4-12" data-line-number="12">  <span class="co"># Convert the data into a 'long' dataframe for use in the 'tidyverse' ecosystem</span></a>
+<a class="sourceLine" id="cb4-13" data-line-number="13">  res &lt;-<span class="st"> </span><span class="kw">as.data.frame</span>(reshape2<span class="op">::</span><span class="kw">melt</span>(res, <span class="dt">value.name =</span> <span class="st">&quot;temp&quot;</span>), <span class="dt">row.names =</span> <span class="ot">NULL</span>) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb4-14" data-line-number="14"><span class="st">    </span><span class="kw">mutate</span>(<span class="dt">t =</span> <span class="kw">as.Date</span>(<span class="kw">as.POSIXct</span>(t, <span class="dt">origin =</span> <span class="st">&quot;1970-01-01 00:00:00&quot;</span>)),</a>
+<a class="sourceLine" id="cb4-15" data-line-number="15">           <span class="dt">temp =</span> <span class="kw">round</span>(temp, <span class="dv">2</span>))</a>
+<a class="sourceLine" id="cb4-16" data-line-number="16">  </a>
+<a class="sourceLine" id="cb4-17" data-line-number="17">  <span class="co"># Close the NetCDF connection and finish</span></a>
+<a class="sourceLine" id="cb4-18" data-line-number="18">  <span class="kw">nc_close</span>(nc)</a>
+<a class="sourceLine" id="cb4-19" data-line-number="19">  <span class="kw">return</span>(res)</a>
+<a class="sourceLine" id="cb4-20" data-line-number="20">}</a></code></pre></div>
+<p>With our wrapper function for preparing our data written we must now run it on our downloaded data. Once that has been done we will simply <code>rbind()</code> the prepared data together and save them. Note that in the wrapper function above we will be re-labelling the ‘time’ column as ‘t’, and the ‘sst’ column as ‘temp’. We do this so that they match the default column names that are expected for calculating MHWs and we won’t have to do any extra work later on.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" data-line-number="1"><span class="co"># Prep the data</span></a>
+<a class="sourceLine" id="cb5-2" data-line-number="2">OISST1_prep &lt;-<span class="st"> </span><span class="kw">OISST_prep</span>(OISST1)</a>
+<a class="sourceLine" id="cb5-3" data-line-number="3">OISST2_prep &lt;-<span class="st"> </span><span class="kw">OISST_prep</span>(OISST2)</a>
+<a class="sourceLine" id="cb5-4" data-line-number="4">OISST3_prep &lt;-<span class="st"> </span><span class="kw">OISST_prep</span>(OISST3)</a>
+<a class="sourceLine" id="cb5-5" data-line-number="5">OISST4_prep &lt;-<span class="st"> </span><span class="kw">OISST_prep</span>(OISST4)</a>
+<a class="sourceLine" id="cb5-6" data-line-number="6">OISST5_prep &lt;-<span class="st"> </span><span class="kw">OISST_prep</span>(OISST5)</a>
+<a class="sourceLine" id="cb5-7" data-line-number="7"></a>
+<a class="sourceLine" id="cb5-8" data-line-number="8"><span class="co"># Bind them together</span></a>
+<a class="sourceLine" id="cb5-9" data-line-number="9">OISST_all &lt;-<span class="st"> </span><span class="kw">rbind</span>(OISST1_prep, OISST2_prep, OISST3_prep, OISST4_prep, OISST5_prep)</a>
+<a class="sourceLine" id="cb5-10" data-line-number="10"></a>
+<a class="sourceLine" id="cb5-11" data-line-number="11"><span class="co"># Save the data as an .Rda file</span></a>
+<a class="sourceLine" id="cb5-12" data-line-number="12"><span class="kw">saveRDS</span>(OISST_all, <span class="dt">file =</span> <span class="st">&quot;~/Desktop/OISST_vignette.Rda&quot;</span>)</a></code></pre></div>
+<p>Note above that I have chosen to save the file to my desktop. This is not normally where one (hopefully!) would save such a file. Rather one would be saving these data into the project folder out of which one is working.</p>
+<p>And that is all there is to it. Download, prep, save. In the next vignette we will see how to <a href="https://robwschlegel.github.io/heatwaveR/articles/gridded_event_detection.html">detect MHWs in gridded data</a>.</p>
 </div>
 
 

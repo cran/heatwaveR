@@ -8,118 +8,112 @@ library(tidyverse)
 library(ggpubr)
 library(heatwaveR)
 
-## ----data-prep-----------------------------------------------------------
-# Create tMin time series
-tMin <- sst_WA %>% 
-  mutate(temp = temp - 1)
+# We will use this package to download atmospheric temperature data
+# Era-interim would be ideal but as of this writing it is still not 
+# possible to downloaded it natively in R
+library(weathercan)
 
-# Create tMax time series
-tMax <- sst_WA %>% 
-  mutate(temp = temp + 1)
+## ----data-prep, eval=T---------------------------------------------------
+# If you'd like to see what stations aare available, run the following line of code:
+# station_ID <- weathercan::stations_dl()
+
+# Download Halifax Airport data
+halifax_raw <- weather_dl(station_ids = c(6358, 50620), interval = "day", quiet = T)
+
+# Prepare for analysis
+halifax <- halifax_raw %>% 
+  dplyr::select(date, min_temp, max_temp) %>% 
+  dplyr::rename(t = date, tMin = min_temp, tMax = max_temp) %>% 
+  dplyr::filter(t >= "1960-01-01") %>%
+  na.omit()
 
 ## ----clim-calc-----------------------------------------------------------
 # The tMax threshold
-# The WMO standard climatology period 0f 1981-01-01 to 2010-12-31 should be used where possible.
-# Unfortunately, the OISST data, from which these data were drawn, only begin in 1982-01-01
-tMax_clim <- ts2clm(tMax, climatologyPeriod = c("1982-01-01", "2011-12-31"), pctile = 90)
+# The current WMO standard climatology period is 1981-01-01 to 2010-12-31 and should be used when possible
+tMax_clim <- ts2clm(data = halifax, y = tMax, climatologyPeriod = c("1981-01-01", "2010-12-31"), pctile = 90)
 
 # The tMin exceedance
 # Note the use here of 'minDuration = 3' and 'maxGap = 1' as the default atmospheric arguments
-# The deafult marine arguemnts are 'minDuration = 5' and 'maxGap = 2'
-tMin_exc <- exceedance(tMin, threshold = 25, minDuration = 3, maxGap = 1)
+# The default marine arguemnts are 'minDuration = 5' and 'maxGap = 2'
+tMin_exc <- exceedance(data = halifax, y = tMin, threshold = 15, minDuration = 3, maxGap = 1)$threshold
 
+## ----events--------------------------------------------------------------
+# Note that because we calculated our 90th percentile threshold on a column named 'tMax' 
+# and not the default column name 'temp', we must specify this below with 'y = tMax'
+events <- detect_event(data = tMax_clim, y = tMax, # The 90th percentile threshold
+                       threshClim2 = tMin_exc$exceedance) # The flat exceedance threshold
+
+## ----visuals-------------------------------------------------------------
+# don't forget to set 'event_line(y = tMax)'
+ggarrange(event_line(events, y = tMax, metric = "intensity_max"),
+          event_line(events, y = tMax, metric = "intensity_max", category = T),
+          lolli_plot(events),
+          ncol = 1, nrow = 3, align = "v")
+
+## ----alt-two-thresh-calc-------------------------------------------------
+# Note that because we are not using the standard column name 'temp' we must
+# specify the chosen column name twice, once for ts2clm() and again for detect_event()
+
+# First threshold based on tMin
+thresh_tMin <- ts2clm(data = halifax, y = tMin, pctile = 80, 
+                                climatologyPeriod = c("1981-01-01", "2010-12-31"))
+
+# Second threshold based on tMax
+# Be careful here that you put the arguments within the correct brackets
+thresh_tMax <- detect_event(ts2clm(data = halifax, y = tMax, pctile = 90, 
+                                   climatologyPeriod = c("1981-01-01", "2010-12-31")),
+                         # These arguments are passed to detect_event()
+                                minDuration = 3, maxGap = 0, y = tMax, protoEvents = T)
+
+# Detect/calculate events using the two precalculated thresholds
+# Because detect_event() is not able to deduce which arguments we used above,
+# we must again tell it explicitly here
+events_two_thresh <- detect_event(data = thresh_tMin, y = tMin, minDuration = 10, maxGap = 2,
+                                  threshClim2 = thresh_tMax$event, minDuration2 = 3, maxGap2 = 0)
+
+# Or to simply use one threshold
+events_one_thresh <- detect_event(data = thresh_tMin, y = tMin, minDuration = 10, maxGap = 2)
+
+## ----alt-two-thresh-lollis-----------------------------------------------
+ggarrange(lolli_plot(events_one_thresh), lolli_plot(events_two_thresh), labels = c("One threshold", "Two thresholds"))
+
+## ----alt-two-thresh-events-----------------------------------------------
+head(events_one_thresh$event)
+head(events_two_thresh$event)
+
+## ----event-data-frame----------------------------------------------------
 # Pull out each data.frame as there own object for easier use
-tMin_exc_exceedance <- tMin_exc$exceedance
-tMin_exc_threshold <- tMin_exc$threshold
+events_one_event <- events_one_thresh$event
+events_one_climatology <- events_one_thresh$climatology
 
-## ----event-detect--------------------------------------------------------
-# Note the use here of 'minDuration = 3' and 'maxGap = 1' as the default atmospheric arguments
-tMax_event <- detect_event(tMax_clim, minDuration = 3, maxGap = 1)
+## ----filter-join---------------------------------------------------------
+# Join the two threshold dataframes
+two_thresh <- left_join(events_one_climatology, thresh_tMax, by = c("t"))
 
-# Pull out each data.frame as there own object for easier use
-tMax_event_event <- tMax_event$event
-tMax_event_climatology <- tMax_event$climatology
+# Remove all days that did not qualify as events in both thresholds
+two_thresh_filtered <- two_thresh %>%
+  filter(event.x == TRUE,
+         event.y == TRUE)
 
-## ----data-join-----------------------------------------------------------
-# Join the climatology outputs of detect_event() and exceedence()
-ts_clims <- left_join(tMax_event_climatology, tMin_exc_threshold, by = c("t"))
+## ----filter-one-thresh---------------------------------------------------
+# Copy data with a new name
+events_one_thresh_filtered <- events_one_thresh
 
-# Remove all days that did not qualify for exceddence()
-ts_clims_filtered <- ts_clims %>%
-  filter(exceedance == TRUE)
+# Then filter
+events_one_thresh_filtered$event <- events_one_thresh_filtered$event %>% 
+  filter(event_no %in% two_thresh_filtered$event_no.x)
 
-## ------------------------------------------------------------------------
-# Calculate number of days for each event above the 25C threshold
-ts_event_duration_thresh <- ts_clims_filtered %>%
-  group_by(event_no) %>%
-  summarise(event_duration_thresh = n()) %>%
-  na.omit()
+# Compare results
+head(events_one_thresh_filtered$event)
+head(events_two_thresh$event)
 
-## ----event-filter1-------------------------------------------------------
-# Filter out the events that were not above the static bottom threshold for their entire duration
-ts_events_filtered <- left_join(tMax_event_event, ts_event_duration_thresh, by = "event_no") %>%
-  na.omit() %>%
-  filter(event_duration_thresh == duration)
-ts_events_filtered
+## ----lolliplot-duration, fig.cap="Difference in duration (days) of events given different applications of thresholds. Note the difference in the y-axes."----
+ggarrange(lolli_plot(events_two_thresh, metric = "duration"), 
+          lolli_plot(events_one_thresh_filtered, metric = "duration"), 
+          labels = c("Double threshold", "Filter threshold"))
 
-## ----event-filter2-------------------------------------------------------
-ts_events_filtered <- left_join(tMax_event_event, ts_event_duration_thresh, by = "event_no") %>%
-  na.omit() %>%
-  filter(event_duration_thresh >= duration - 3)
-ts_events_filtered
-
-## ----event-filter3-------------------------------------------------------
-ts_events_filtered <- left_join(tMax_event_event, ts_event_duration_thresh, by = "event_no") %>%
-  na.omit() %>%
-  filter(event_duration_thresh >= duration / 4)
-ts_events_filtered
-
-## ----visual-prep---------------------------------------------------------
-# Create artificial list object similar to detect_event() output
-ts_filtered_list <- list(climatology = tMax_event_climatology,
-                            event = ts_events_filtered)
-
-## ----event-line1---------------------------------------------------------
-# Then run event_line() on it
-event_line(ts_filtered_list, start_date = "2010-01-01", end_date = "2012-05-30", spread = 50)
-
-## ----event-line2---------------------------------------------------------
-# Or visualise the categories
-event_line(ts_filtered_list, start_date = "2010-01-01", end_date = "2012-05-30", 
-           spread = 50, category = TRUE)
-
-## ----lolli-plot----------------------------------------------------------
-# Or lolli_plot as desired
-lolli_plot(ts_filtered_list, event_count = 1)
-
-## ----category------------------------------------------------------------
-ts_category <- category(ts_filtered_list, name = "WA")
-ts_category
-
-## ------------------------------------------------------------------------
-# First we calculate the exceedance as desired
-thresh_19 <- exceedance(sst_Med, threshold = 19, minDuration = 10, maxGap = 0)$threshold
-
-# Then we use that output when detecting our events
-events_19 <- detect_event(ts2clm(sst_Med, climatologyPeriod = c("1982-01-01", "2011-12-31")), 
-                                 threshClim2 = thresh_19$exceedance, minDuration2 = 10, maxGap2 = 0)
-
-## ------------------------------------------------------------------------
-# The default output
-events_default <- detect_event(ts2clm(sst_Med, climatologyPeriod = c("1982-01-01", "2011-12-31")))
-
-ggarrange(lolli_plot(events_19), lolli_plot(events_default), labels = c("Two thresholds", "One threshold"))
-
-## ------------------------------------------------------------------------
-# First we calculate the second threshold
-thresh_95 <- detect_event(ts2clm(sst_Med, pctile = 95,
-                                 climatologyPeriod = c("1982-01-01", "2011-12-31")), 
-                          minDuration = 2, maxGap = 0)$climatology
-
-# Then we use that output when detecting our events
-events_95 <- detect_event(ts2clm(sst_Med, climatologyPeriod = c("1982-01-01", "2011-12-31")), 
-                          threshClim2 = thresh_95$event, minDuration2 = 2, maxGap2 = 0)
-
-## ------------------------------------------------------------------------
-ggarrange(lolli_plot(events_95), lolli_plot(events_default), labels = c("Two thresholds", "One threshold"))
+## ----lolliplot-int-cum, fig.cap="Difference in cumulative intensity (°C x days) of events given different applications of thresholds. Note the difference in the y-axes."----
+ggarrange(lolli_plot(events_two_thresh, metric = "intensity_cumulative"), 
+          lolli_plot(events_one_thresh_filtered, metric = "intensity_cumulative"), 
+          labels = c("Double threshold", "Filter threshold"))
 

@@ -7,7 +7,7 @@
 detect_event(data, x = t, y = temp, seasClim = seas,
   threshClim = thresh, threshClim2 = NA, minDuration = 5,
   minDuration2 = minDuration, joinAcrossGaps = TRUE, maxGap = 2,
-  maxGap2 = maxGap, coldSpells = FALSE)
+  maxGap2 = maxGap, coldSpells = FALSE, protoEvents = FALSE)
 }
 \arguments{
 \item{data}{A data frame with at least four columns. In the default setting
@@ -72,30 +72,28 @@ to use \code{detect_event} for MCSs, this threshold would best be generated
 in \code{\link{ts2clm}} by setting \code{pctile = 10} (see example below).
 Any value may be used, but this is the setting used for the calculation of
 MCSs in Schlegel et al. (2017a).}
+
+\item{protoEvents}{Boolean specifying whether the full time series must be
+returned as a long table, together with columns indicating whether or not the
+threshold criterion (\code{threshCriterion}) and duration criterion (\code{durationCriterion})
+have been exceeded, a column showing if a heatwave is present (i.e. both
+\code{threshCriterion} and \code{durationCriterion} \code{TRUE}), and a
+sequential number uniquely identifying the detected event. In this case,
+the heatwave metrics will not be reported. The default is \code{FALSE}.}
 }
 \value{
 The function will return a list of two tibbles (see the \code{tidyverse}),
 \code{climatology} and \code{event}, which are, surprisingly, the climatology
-and events, respectively. The climatology contains the full time series of
+and event results, respectively. The climatology contains the full time series of
 daily temperatures, as well as the the seasonal climatology, the threshold
 and various aspects of the events that were detected. The software was
 designed for detecting extreme thermal events, and the units specified below
 reflect that intended purpose. However, various other kinds of extreme
 events may be detected according to the specifications, and if that is the
 case, the appropriate units need to be determined by the user.
-  \item{doy}{Julian day (day-of-year). For non-leap years it runs 1...59 and
-  61...366, while leap years run 1...366. This column will be named differently if
-  another name was specified to the \code{doy} argument.}
-  \item{t}{The date of the temperature measurement. This column will be
-  named differently if another name was specified to the \code{x} argument.}
-  \item{temp}{If the software was used for the purpose for which it was designed,
-  seawater temperature [deg. C] on the specified date will be returned. This
-  column will of course be named differently if another kind of measurement was
-  specified to the \code{y} argument.}
-  \item{seas}{Daily climatological seasonal cycle [deg. C].}
-  \item{thresh}{Daily climatological threshold cycle (e.g., 90th
-  percentile) [deg. C].}
-  \item{var}{Seasonally varying standard deviation [deg. C].}
+
+The \code{climatology} results will contain the same column produced by
+\code{\link{ts2clm}} as well as the following:
   \item{threshCriterion}{Boolean indicating if \code{temp} exceeds
   \code{thresh}.}
   \item{durationCriterion}{Boolean indicating whether periods of consecutive
@@ -105,7 +103,7 @@ case, the appropriate units need to be determined by the user.
   \item{event_no}{A sequential number indicating the ID and order of
   occurence of the events.}
 
-The events are summarised using a range of event metrics:
+The \code{event} results are summarised using a range of event metrics:
   \item{event_no}{A sequential number indicating the ID and order of
   the events.}
   \item{index_start}{Start index of event.}

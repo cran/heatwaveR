@@ -1,8 +1,140 @@
+# heatwaveR 0.3.6 (2019-01-16)
+
+* Finished Alternative Thresholds (Complex Climatologies) vignette
+* Bumbed code coverage back up to 100%
+* AN important potential backwards compatibility breaking change is that by default
+  `ts2clm()` and `exceedance()` will no longer produce a `var` column
+    * The argument `var = TRUE` may be given to produce this column
+* Submitted v0.3.6 to CRAN
+
+# heatwaveR 0.3.5.9006 (2019-01-15)
+
+* Began editing Alternative (Complex) Climatology vignette
+* Changed the default argument for `exceedance(maxPadLength)` from `3` to `FALSE` 
+  to match the new default for `ts2clm()`
+* Changed the default behaviour of `event_line()` to no longer require the user to 
+  provide `start_date` and `end_date` arguments
+
+# heatwaveR 0.3.5.9005 (2019-01-03)
+
+* Corrected some typos in the gridded event detection vignette
+
+# heatwaveR 0.3.5.9004 (2019-01-02)
+
+* First update of 2019
+* Added 'protoEvents' argument to `detect_events.R()` for returning the proto events rather than 
+  a table for the event metrics
+
+# heatwaveR 0.3.5.9003 (2018-12-26)
+
+* Boxing day update
+
+# heatwaveR 0.3.5.9003 (2018-12-21)
+
+* Updated text for the OISST preparation vignette
+* Updated text for the gridded event detection vignette
+
+# heatwaveR 0.3.5.9003 (2018-12-19)
+
+* Updated text on the landing page to better reflect the updates that have been made over the past few months
+* Fixed typo in `event_line()` output
+* Updated text for the detection and visualisation vignette
+* Updated text for the exceedance vignette
+* Updated text for the categories vignette
+* Updated text for the OISST preparation vignette
+
+# heatwaveR 0.3.5.9003 (2018-12-18)
+
+* Changed time series checking behaviour of `exceedance()` so that it is the same as `ts2clm()`
+
+# heatwaveR 0.3.5.9002 (2018-12-12)
+
+* Fixed bug in `event_line()` that caused it to graph events outside of the `spread` range
+* Expanded testing back up to 100%
+
+# heatwaveR 0.3.5.9001 (2018-12-06)
+
+* Fixed bug caused by R not liking dates older than 1970-01-01
+* Changed `maxPadLength` behaviour in `ts2clm()` to match the Python default settings
+
+# heatwaveR 0.3.5.9000 (2018-12-05)
+
+* Added 'duration_max' to `block_average()` output
+* Resumed correct version numbering
+
+# heatwaveR 0.3.5 (2018-12-03)
+
+* Increased functionality of `block_average()`
+
+# heatwaveR 0.3.5 (2018-11-01)
+
+* Updated one figure in a vignette
+
+# heatwaveR 0.3.5 (2018-10-26)
+
+* `clim_calc()` reinstated to allow for calculation of clims with missing data
+* `var` calculations reinstated for documentation issues
+
+# heatwaveR 0.3.5 (2018-10-20)
+
+* `ts2clm()` no longer calls `clim_calc()`, but `clim_calc_cpp()` only 
+* `smooth_percentile()` no longer provides option to create variance 
+  climatology (the need to no longer create var seemed to not be fully
+  implemented in 0.3.4)
+
+# heatwaveR 0.3.4 (2018-10-19)
+
+* `ts2clm()` no longer calculates variance column by default
+* `make_whole()` has been deprecated in favour of `make_whole_fast()`
+
+# heatwaveR 0.3.4 (2018-10-17)
+
+* All major functions now produce results only up to the fourth decimal place
+
+# heatwaveR 0.3.4 (2018-10-16)
+
+* Clarified some information on the basic detection vignette
+* Corrected a link that went to the wrong page
+
+# heatwaveR 0.3.4 (2018-10-03)
+
+* Changed error handling in `proto_event()` to return no events
+  than to stop message with an error.
+* This change was picked up by `detect_event()` without any required changes
+* `category()` required a bit of cajoling to also output a blank dataframe
+
+# heatwaveR 0.3.4 (2018-10-01)
+
+* Minor tweak to `make_whole_fast()` to provide a cleaner internal output
+
+# heatwaveR 0.3.4 (2018-09-28)
+
+* Removed several unnecessary columns from category climatology output
+
+# heatwaveR 0.3.4 (2018-09-27)
+
+* Fixed bug in `ts2clm()` that prevented calculation of clims with large
+  contiguous missing periods of data (e.g. ice coverage).
+* Added argument to `category()` that allows one to have the function also 
+  output the day-to-day (long) category values, rather than just the
+  summary (wide) output.
+* Added lon/lat values to documentation for built-in time series
+
+# heatwaveR 0.3.3 (2018-08-23)
+
+* Added CITATION file so that package citation is now set to JOSS article
+
+# heatwaveR 0.3.3 (2018-07-31)
+
+* Added Zenodo DOI badge
+* JOSS review process complete
+* Added JOSS DOI badge
+
 # heatwaveR 0.3.3 (2018-07-25)
 
 * BUG FIX: corrected issue with `clim_calc_cpp` not being able to calculate
   clims from baselines not beginning and ending on the Julian year by making
-  `clim_spread` plug the gaps beforehand with rowwise means.
+  `clim_spread` plug the gaps beforehand with row-wise means.
 * Rebuilt pkgdown site to reflect version increase
 * v0.3.3 submitted to CRAN
 
@@ -24,8 +156,7 @@
 # heatwaveR 0.3.0 (2018-06-22)
 
 * Re-submitted to CRAN in anticipation of __`ggplot2`__ changes
-
- `proto_event` now handles all event calculations 'in house'
+* `proto_event` now handles all event calculations 'in house'
 * This allows `detect_event` to now be given a theoretically limitless number of
   thresholds
 
@@ -113,7 +244,7 @@
 
 # heatwaveR 0.2.3.9000 (2018-05-16)
 
-* Major spead-up in the climatology creation function. `clim_spread()` now returns
+* Major speed-up in the climatology creation function. `clim_spread()` now returns
   a matrix, not a data frame. This makes the loop in `clim_calc()` much faster.
   In testing with the sst_WA data, it leads to a 3.7 fold speed improvement
   (520 ms down to 140 ms).

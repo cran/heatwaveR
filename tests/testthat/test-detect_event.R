@@ -6,7 +6,7 @@ test_that("detect() returns the correct lists, tibbles, and columns", {
   expect_is(res, "list")
   expect_is(res$climatology, "tbl_df")
   expect_is(res$event, "tbl_df")
-  expect_equal(ncol(res$climatology), 10)
+  expect_equal(ncol(res$climatology),9)
   expect_equal(ncol(res$event), 22)
 })
 
@@ -27,7 +27,7 @@ test_that("coldSpells = TRUE returns MCS calculations", {
   expect_lt(min(res$event$intensity_max), 0)
 })
 
-test_that("joinAcrosGaps = FALSE returns more events", {
+test_that("joinAcrossGaps = FALSE returns more events", {
   ts <- ts2clm(sst_WA, climatologyPeriod = c("1983-01-01", "2012-12-31"))
   res_join <- detect_event(ts)
   res_misanthrope <- detect_event(ts, joinAcrossGaps = FALSE)
@@ -62,4 +62,27 @@ test_that("detect_event() utilises the second threshold correctly", {
 test_that("threshClim2 must be logic values", {
   ts <- ts2clm(sst_WA, climatologyPeriod = c("1983-01-01", "2012-12-31"))
   expect_error(detect_event(ts, threshClim2 = "aaa"))
+})
+
+test_that("no detected events returns an empty event dataframe and not an error", {
+  sst_WA_flat <- sst_WA
+  sst_WA_flat$temp <- 1
+  res <- detect_event(ts2clm(sst_WA_flat, climatologyPeriod = c("1983-01-01", "2012-12-31")))
+  expect_is(res, "list")
+  expect_is(res$climatology, "tbl_df")
+  expect_is(res$event, "tbl_df")
+  expect_equal(ncol(res$climatology), 9)
+  expect_equal(ncol(res$event), 22)
+  expect_equal(nrow(res$event), 0)
+})
+
+test_that("decimal places are rounded to the fourth place", {
+  res <- detect_event(ts2clm(sst_WA, climatologyPeriod = c("1983-01-01", "2012-12-31")))
+  expect_equal(nchar(strsplit(as.character(res$climatology$thresh[1]), "\\.")[[1]][2]), 4)
+  expect_equal(nchar(strsplit(as.character(res$event$intensity_max[1]), "\\.")[[1]][2]), 4)
+})
+
+test_that("protoEvents argument functions correctly", {
+  res <- detect_event(ts2clm(sst_WA, climatologyPeriod = c("1983-01-01", "2012-12-31")), protoEvents = T)
+  expect_is(res, "data.frame")
 })

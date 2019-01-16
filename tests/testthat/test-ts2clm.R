@@ -3,7 +3,7 @@ context("Test ts2clm.R")
 test_that("ts2clm() returns the correct output", {
   res <- ts2clm(sst_WA, climatologyPeriod = c("1983-01-01", "2012-12-31"))
   expect_is(res, "data.frame")
-  expect_equal(ncol(res), 6)
+  expect_equal(ncol(res), 5)
   expect_equal(nrow(res), 12053)
 })
 
@@ -12,8 +12,14 @@ test_that("all starting error checks flag correctly", {
   expect_error(ts2clm(sst_WA, climatologyPeriod = "1983-01-01"),
                "Bummer! Please provide BOTH start and end dates for the climatology period.")
   expect_error(ts2clm(sst_WA, climatologyPeriod = c("1983-01-01", "2012-12-31"),
+                      robust = "TRUE"),
+               "Please ensure that 'robust' is either TRUE or FALSE.")
+  expect_error(ts2clm(sst_WA, climatologyPeriod = c("1983-01-01", "2012-12-31"),
                       maxPadLength = "2"),
-               "Please ensure that 'maxPadLength' is a numeric/integer value.")
+               "Please ensure that 'maxPadLength' is either FALSE or a numeric/integer value.")
+  expect_error(ts2clm(sst_WA, climatologyPeriod = c("1983-01-01", "2012-12-31"),
+                      maxPadLength = TRUE),
+               "Please ensure that 'maxPadLength' is either FALSE or a numeric/integer value.")
   expect_error(ts2clm(sst_WA, climatologyPeriod = c("1983-01-01", "2012-12-31"),
                       pctile = "90"),
                "Please ensure that 'pctile' is a numeric/integer value.")
@@ -29,6 +35,14 @@ test_that("all starting error checks flag correctly", {
   expect_error(ts2clm(sst_WA, climatologyPeriod = c("1983-01-01", "2012-12-31"),
                       clmOnly = "FALSE"),
                "Please ensure that 'clmOnly' is either TRUE or FALSE.")
+  sst_WA_dummy1 <- sst_WA %>%
+    dplyr::mutate(t = as.POSIXct(t))
+  expect_error(ts2clm(sst_WA_dummy1, climatologyPeriod = c("1983-01-01", "2012-12-31")),
+               "Please ensure your date values are type 'Date'. This may be done with 'as.Date()")
+  sst_WA_dummy2 <- sst_WA %>%
+    dplyr::mutate(temp = as.character(temp))
+  expect_error(ts2clm(sst_WA_dummy2, climatologyPeriod = c("1983-01-01", "2012-12-31")),
+               "Please ensure the temperature values you are providing are type 'num' for numeric.")
 })
 
 test_that("the start/end dates must not be before/after the clim limits", {
@@ -49,14 +63,13 @@ test_that("clmOnly = TRUE returns only the clim data", {
   res <- ts2clm(sst_WA, climatologyPeriod = c("1983-01-01", "2012-12-31"),
                 clmOnly = TRUE)
   expect_is(res, "data.frame")
-  expect_equal(ncol(res), 4)
+  expect_equal(ncol(res), 3)
   expect_equal(nrow(res), 366)
 })
 
-test_that("robust = TRUE switches to the slower function but produces same results", {
-  t_1 <- ts2clm(sst_WA, climatologyPeriod = c("1983-01-01", "2012-12-31"), robust = TRUE)
-  t_2 <- ts2clm(sst_WA, climatologyPeriod = c("1983-01-01", "2012-12-31"), robust = FALSE)
-  expect_equal(t_1, t_2)
+test_that("robust = TRUE notifies the user that the 'robust' argument has been deprecated", {
+  expect_message(ts2clm(sst_WA, climatologyPeriod = c("1983-01-01", "2012-12-31"), robust = TRUE),
+                 "The 'robust' argument has been deprecated and will be removed from future versions.")
 })
 
 test_that("climatologyPeriod less than three years is rejected", {
@@ -64,12 +77,31 @@ test_that("climatologyPeriod less than three years is rejected", {
                "The climatologyPeriod must be at least three years to calculate thresholds")
 })
 
-test_that("mssing data causes na_interp() to be used", {
-  sst_WA_NA <- sst_WA
-  sst_WA_NA$temp[c(1, 400, 1000)] <- NA
-  ts_1 <- ts2clm(sst_WA_NA, climatologyPeriod = c("1983-01-01", "2012-12-31"))
-  ts_2 <- ts2clm(sst_WA, climatologyPeriod = c("1983-01-01", "2012-12-31"))
-  expect_condition(ts_1$temp[1], regexp = NA)
-  expect_lt(ts_2$temp[400], ts_1$temp[400])
-  expect_lt(ts_2$temp[1000], ts_1$temp[1000])
+test_that("mssing data causes na_interp() to be used if a value is provided for maxPadLength", {
+  sst_Med_NA <- sst_Med[c(1:20,22:12000),]
+  res <- ts2clm(data = sst_Med_NA, climatologyPeriod = c("1983-01-01", "2012-12-31"), maxPadLength = 2)
+  expect_equal(round(res$temp[21], 2), 13.57)
+})
+
+test_that("contiguous mssing data causes clim_calc() to be used", {
+  sst_WA_cont <- sst_WA %>%
+    dplyr::mutate(month = month(t)) %>%
+    dplyr::filter(month != 1) %>%
+    dplyr::select(-month)
+  res <- ts2clm(sst_WA_cont, climatologyPeriod = c("1983-01-01", "2012-12-31"))
+  expect_is(res, "data.frame")
+  expect_equal(ncol(res), 5)
+  expect_equal(nrow(res), 12022)
+})
+
+test_that("decimal places are rounded to the fourth place", {
+  res <- ts2clm(sst_WA, climatologyPeriod = c("1983-01-01", "2012-12-31"))
+  expect_equal(nchar(strsplit(as.character(res$seas[2]), "\\.")[[1]][2]), 4)
+})
+
+test_that("var argument functions correctly", {
+  res <- ts2clm(sst_WA, climatologyPeriod = c("1983-01-01", "2012-12-31"), var = T)
+  expect_is(res, "data.frame")
+  expect_equal(ncol(res), 6)
+  expect_equal(nrow(res), 12053)
 })
