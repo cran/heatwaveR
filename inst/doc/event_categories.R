@@ -5,8 +5,8 @@ knitr::opts_chunk$set(fig.width = 8, fig.height = 3, fig.align = 'centre',
 
 ## ----category-example1---------------------------------------------------
 # Load libraries
+library(tidyverse)
 library(heatwaveR)
-library(dplyr)
 
 # Calculate events
 ts <- ts2clm(sst_WA, climatologyPeriod = c("1982-01-01", "2011-12-31"))

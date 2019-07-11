@@ -5,8 +5,8 @@ knitr::opts_chunk$set(fig.width = 8, fig.height = 3, fig.align = 'centre',
 
 ## ----exceedance-example1-------------------------------------------------
 # Activate libraries
+library(tidyverse)
 library(heatwaveR)
-library(dplyr)
 
 # Calculate exceedence
 exc_25 <- exceedance(sst_WA, threshold = 25)

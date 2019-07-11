@@ -4,7 +4,7 @@ test_that("ts2clm() returns the correct output", {
   res <- ts2clm(sst_WA, climatologyPeriod = c("1983-01-01", "2012-12-31"))
   expect_is(res, "data.frame")
   expect_equal(ncol(res), 5)
-  expect_equal(nrow(res), 12053)
+  expect_equal(nrow(res), 13514)
 })
 
 test_that("all starting error checks flag correctly", {
@@ -35,6 +35,12 @@ test_that("all starting error checks flag correctly", {
   expect_error(ts2clm(sst_WA, climatologyPeriod = c("1983-01-01", "2012-12-31"),
                       clmOnly = "FALSE"),
                "Please ensure that 'clmOnly' is either TRUE or FALSE.")
+  expect_error(ts2clm(sst_WA, climatologyPeriod = c("1983-01-01", "2012-12-31"),
+                      roundClm = "2"),
+               "Please ensure that 'roundClm' is either a numeric value or FALSE.")
+  expect_error(ts2clm(sst_WA, climatologyPeriod = c("1983-01-01", "2012-12-31"),
+                      roundClm = TRUE),
+               "Please ensure that 'roundClm' is either a numeric value or FALSE.")
   sst_WA_dummy1 <- sst_WA %>%
     dplyr::mutate(t = as.POSIXct(t))
   expect_error(ts2clm(sst_WA_dummy1, climatologyPeriod = c("1983-01-01", "2012-12-31")),
@@ -49,7 +55,7 @@ test_that("the start/end dates must not be before/after the clim limits", {
   expect_error(ts2clm(sst_WA, climatologyPeriod = c("1973-01-01", "2012-12-31")),
                "The specified start date precedes the first day of series, which is 1982-01-01")
   expect_error(ts2clm(sst_WA, climatologyPeriod = c("1983-01-01", "2023-12-31")),
-               "The specified end date follows the last day of series, which is 2014-12-31")
+               "The specified end date follows the last day of series, which is 2018-12-31")
 })
 
 test_that("smooth_percentile = FALSE prevents smoothing", {
@@ -85,13 +91,13 @@ test_that("mssing data causes na_interp() to be used if a value is provided for 
 
 test_that("contiguous mssing data causes clim_calc() to be used", {
   sst_WA_cont <- sst_WA %>%
-    dplyr::mutate(month = month(t)) %>%
+    dplyr::mutate(month = lubridate::month(t)) %>%
     dplyr::filter(month != 1) %>%
     dplyr::select(-month)
   res <- ts2clm(sst_WA_cont, climatologyPeriod = c("1983-01-01", "2012-12-31"))
   expect_is(res, "data.frame")
   expect_equal(ncol(res), 5)
-  expect_equal(nrow(res), 12022)
+  expect_equal(nrow(res), 13483)
 })
 
 test_that("decimal places are rounded to the fourth place", {
@@ -103,5 +109,14 @@ test_that("var argument functions correctly", {
   res <- ts2clm(sst_WA, climatologyPeriod = c("1983-01-01", "2012-12-31"), var = T)
   expect_is(res, "data.frame")
   expect_equal(ncol(res), 6)
-  expect_equal(nrow(res), 12053)
+  expect_equal(nrow(res), 13514)
+})
+
+test_that("roundClm argument functions correctly", {
+  res <- ts2clm(sst_WA, climatologyPeriod = c("1983-01-01", "2012-12-31"), roundClm = 4)
+  expect_equal(res$seas[1], 21.6080)
+  res <- ts2clm(sst_WA, climatologyPeriod = c("1983-01-01", "2012-12-31"), roundClm = 0)
+  expect_equal(res$seas[1], 22)
+  res <- ts2clm(sst_WA, climatologyPeriod = c("1983-01-01", "2012-12-31"), roundClm = F)
+  expect_gt(res$seas[1], 21.60802)
 })

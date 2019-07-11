@@ -8,34 +8,19 @@ library(tidyverse)
 library(ggpubr)
 library(heatwaveR)
 
-# We will use this package to download atmospheric temperature data
-# Era-interim would be ideal but as of this writing it is still not 
-# possible to downloaded it natively in R
-library(weathercan)
-
 ## ----data-prep, eval=T---------------------------------------------------
-# If you'd like to see what stations aare available, run the following line of code:
-# station_ID <- weathercan::stations_dl()
-
-# Download Halifax Airport data
-halifax_raw <- weather_dl(station_ids = c(6358, 50620), interval = "day", quiet = T)
-
-# Prepare for analysis
-halifax <- halifax_raw %>% 
-  dplyr::select(date, min_temp, max_temp) %>% 
-  dplyr::rename(t = date, tMin = min_temp, tMax = max_temp) %>% 
-  dplyr::filter(t >= "1960-01-01") %>%
-  na.omit()
+Algiers <- heatwaveR::Algiers
 
 ## ----clim-calc-----------------------------------------------------------
 # The tMax threshold
 # The current WMO standard climatology period is 1981-01-01 to 2010-12-31 and should be used when possible
-tMax_clim <- ts2clm(data = halifax, y = tMax, climatologyPeriod = c("1981-01-01", "2010-12-31"), pctile = 90)
+# We rather use 1961-01-01 to 1990-01-01 as this is the oldest 30 year period available in the data
+tMax_clim <- ts2clm(data = Algiers, y = tMax, climatologyPeriod = c("1961-01-01", "1990-12-31"), pctile = 90)
 
 # The tMin exceedance
 # Note the use here of 'minDuration = 3' and 'maxGap = 1' as the default atmospheric arguments
-# The default marine arguemnts are 'minDuration = 5' and 'maxGap = 2'
-tMin_exc <- exceedance(data = halifax, y = tMin, threshold = 15, minDuration = 3, maxGap = 1)$threshold
+# The default marine arguments are 'minDuration = 5' and 'maxGap = 2'
+tMin_exc <- exceedance(data = Algiers, y = tMin, threshold = 19, minDuration = 3, maxGap = 1)$threshold
 
 ## ----events--------------------------------------------------------------
 # Note that because we calculated our 90th percentile threshold on a column named 'tMax' 
@@ -43,27 +28,38 @@ tMin_exc <- exceedance(data = halifax, y = tMin, threshold = 15, minDuration = 3
 events <- detect_event(data = tMax_clim, y = tMax, # The 90th percentile threshold
                        threshClim2 = tMin_exc$exceedance) # The flat exceedance threshold
 
-## ----visuals-------------------------------------------------------------
-# don't forget to set 'event_line(y = tMax)'
+## ----visuals, fig.height=6-----------------------------------------------
+# The code to create a bubble plot for the heatwave results
+bubble_plot <- ggplot(data = events$event, aes(x = date_peak, y = intensity_max)) +
+  geom_point(aes(size = intensity_cumulative), shape = 21, fill = "salmon", alpha = 0.8) +
+  labs(x = NULL, y = "Maximum Intensity [°C] ", size = "Cumulative Intensity [°C x days]") +
+  scale_size_continuous(range = c(1, 10), 
+                        guide = guide_legend(title.position = "top", direction = "horizontal")) +
+  theme_bw() +
+  theme(legend.position = c(0.3, 0.12),
+        legend.box.background = element_rect(colour = "black"))
+
+# Don't forget to set 'event_line(y = tMax)'
 ggarrange(event_line(events, y = tMax, metric = "intensity_max"),
           event_line(events, y = tMax, metric = "intensity_max", category = T),
           lolli_plot(events),
-          ncol = 1, nrow = 3, align = "v")
+          bubble_plot,
+          ncol = 2, nrow = 2, align = "hv")
 
 ## ----alt-two-thresh-calc-------------------------------------------------
 # Note that because we are not using the standard column name 'temp' we must
 # specify the chosen column name twice, once for ts2clm() and again for detect_event()
 
 # First threshold based on tMin
-thresh_tMin <- ts2clm(data = halifax, y = tMin, pctile = 80, 
-                                climatologyPeriod = c("1981-01-01", "2010-12-31"))
+thresh_tMin <- ts2clm(data = Algiers, y = tMin, pctile = 80, 
+                      climatologyPeriod = c("1961-01-01", "1990-12-31"))
 
 # Second threshold based on tMax
 # Be careful here that you put the arguments within the correct brackets
-thresh_tMax <- detect_event(ts2clm(data = halifax, y = tMax, pctile = 90, 
-                                   climatologyPeriod = c("1981-01-01", "2010-12-31")),
-                         # These arguments are passed to detect_event()
-                                minDuration = 3, maxGap = 0, y = tMax, protoEvents = T)
+thresh_tMax <- detect_event(ts2clm(data = Algiers, y = tMax, pctile = 90, 
+                                   climatologyPeriod = c("1961-01-01", "1990-12-31")),
+                            # These arguments are passed to detect_event(), not ts2clm()
+                            minDuration = 3, maxGap = 0, y = tMax, protoEvents = T)
 
 # Detect/calculate events using the two precalculated thresholds
 # Because detect_event() is not able to deduce which arguments we used above,
@@ -82,7 +78,7 @@ head(events_one_thresh$event)
 head(events_two_thresh$event)
 
 ## ----event-data-frame----------------------------------------------------
-# Pull out each data.frame as there own object for easier use
+# Pull out each data.frame as their own object for easier use
 events_one_event <- events_one_thresh$event
 events_one_climatology <- events_one_thresh$climatology
 

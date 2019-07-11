@@ -8,8 +8,8 @@ head(heatwaveR::sst_WA)
 
 ## ----detect-example1-----------------------------------------------------
 # Load libraries
+library(tidyverse)
 library(heatwaveR)
-library(dplyr)
 
 # Detect the events in a time series
 ts <- ts2clm(sst_WA, climatologyPeriod = c("1982-01-01", "2011-12-31"))
@@ -47,20 +47,36 @@ ggplot(mhw$event, aes(x = date_start, y = intensity_max)) +
 # It is necessary to give geom_flame() at least one row on either side of 
 # the event in order to calculate the polygon corners smoothly
 mhw_top <- mhw2 %>% 
-  slice(49:110)
+  slice(5:111)
 
 ggplot(data = mhw2, aes(x = t)) +
   geom_flame(aes(y = temp, y2 = thresh, fill = "all"), show.legend = T) +
-  geom_flame(data = mhw_top, aes(y = temp, y2 = thresh, fill = "top"), show.legend = T) +
+  geom_flame(data = mhw_top, aes(y = temp, y2 = thresh, fill = "top"),  show.legend = T) +
   geom_line(aes(y = temp, colour = "temp")) +
   geom_line(aes(y = thresh, colour = "thresh"), size = 1.0) +
   geom_line(aes(y = seas, colour = "seas"), size = 1.2) +
   scale_colour_manual(name = "Line Colour",
-                      values = c("temp" = "black", "thresh" =  "forestgreen", "seas" = "grey80")) +
-  scale_fill_manual(name = "Event Colour", values = c("all" = "salmon", "top" = "red")) +
+                      values = c("temp" = "black", 
+                                 "thresh" =  "forestgreen", 
+                                 "seas" = "grey80")) +
+  scale_fill_manual(name = "Event Colour", 
+                    values = c("all" = "salmon", 
+                               "top" = "red")) +
   scale_x_date(date_labels = "%b %Y") +
   guides(colour = guide_legend(override.aes = list(fill = NA))) +
   labs(y = expression(paste("Temperature [", degree, "C]")), x = NULL)
+
+## ----flame_gaps----------------------------------------------------------
+mhw3 <- mhw$climatology %>% 
+  slice(850:950)
+
+ggplot(mhw3, aes(x = t, y = temp, y2 = thresh)) +
+  geom_flame(fill = "black", alpha = 0.5) +
+  # Note the use of n = 5 and n_gap = 2 below
+  geom_flame(n = 5, n_gap = 2, fill = "red", alpha = 0.5) +
+  ylim(c(22, 25)) +
+    geom_text(colour = "black", aes(x = as.Date("1984-05-16"), y = 24.5,
+                label = "heat\n\n\n\n\nspike"))
 
 ## ----fig-example4, echo = TRUE, eval = TRUE------------------------------
 ggplot(mhw$event, aes(x = date_peak, y = intensity_max)) +
@@ -122,4 +138,24 @@ ggplot(data = mcs2, aes(x = t)) +
 ggplot(mcs$event, aes(x = date_start, y = intensity_cumulative)) +
   geom_lolli(colour = "steelblue3", colour_n = "navy", n = 7) +
   labs( x = "Start Date", y = expression(paste("Cumulative intensity [days x ", degree, "C]")))
+
+## ----plotly-example, eval=FALSE------------------------------------------
+#  # Must load plotly library first
+#  library(plotly)
+#  
+#  # Time series
+#  ts_res <- heatwaveR::ts2clm(data = heatwaveR::sst_WA,
+#                              climatologyPeriod = c("1982-01-01", "2011-12-31"))
+#  ts_res_sub <- ts_res[10500:10800,]
+#  
+#  # Flame Figure
+#  p <- ggplot(data = ts_res_sub, aes(x = t, y = temp)) +
+#    heatwaveR::geom_flame(aes(y2 = thresh), n = 5, n_gap = 2) +
+#    geom_line(aes(y = temp)) +
+#    geom_line(aes(y = seas), colour = "green") +
+#    geom_line(aes(y = thresh), colour = "red") +
+#    labs(x = "", y = "Temperature (°C)")
+#  
+#  # Create interactive visuals
+#  ggplotly(p)
 
