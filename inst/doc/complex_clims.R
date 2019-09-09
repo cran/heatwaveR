@@ -9,7 +9,7 @@ library(ggpubr)
 library(heatwaveR)
 
 ## ----data-prep, eval=T---------------------------------------------------
-Algiers <- heatwaveR::Algiers
+Algiers <- Algiers
 
 ## ----clim-calc-----------------------------------------------------------
 # The tMax threshold

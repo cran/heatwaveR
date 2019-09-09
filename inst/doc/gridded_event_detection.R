@@ -16,37 +16,29 @@ knitr::opts_chunk$set(fig.width = 4, fig.align = 'center',
 #    clim <- ts2clm(data = df, climatologyPeriod = c("1982-01-01", "2011-01-01"))
 #    # Then the events
 #    event <- detect_event(data = clim)
-#    # Lastly we return only the event dataframe of results
+#    # Return only the event metric dataframe of results
 #    return(event$event)
 #  }
 
 ## ----detect-purrr--------------------------------------------------------
 #  system.time(
 #  # First we start by chosing the 'OISST' dataframe
-#  MHW_purrr <- OISST %>%
+#  MHW_dplyr <- OISST %>%
 #    # Then we group the data by the 'lon' and 'lat' columns
 #    group_by(lon, lat) %>%
-#    # After that we nest each lon/lat pixel into its own little dataframe
-#      # The column containing all of these little dataframes is named 'data'
-#    nest() %>%
-#    # Next we 'map' the event_only() wrapper function we made to the little dataframes
-#    mutate(event = map(data, event_only)) %>%
-#    # Lastly we get rid of the column that is not part of the final result
-#      # before unnesting everything
-#    select(-data) %>%
-#    unnest()
-#  )
+#    # Then we run our MHW calculating function on each group
+#    group_modify(~event_only(.x))
+#  ) # 214 seconds
 
 ## ----detect-plyr---------------------------------------------------------
-#  # First we need to tell R how many cores to use
-#    # NB: One should never use ALL available cores, save at least 1 for other essential tasks
-#      # The computer I'm writing this vignette on has 4 cores, so I use 3 here
+#  # NB: One should never use ALL available cores, save at least 1 for other essential tasks
+#  # The computer I'm writing this vignette on has 4 cores, so I use 3 here
 #  library(doMC)
 #  registerDoMC(cores = 3)
 #  
 #  system.time(
 #  MHW_plyr <- plyr::ddply(.data = OISST, .variables = c("lon", "lat"), .fun = event_only, .parallel = TRUE)
-#  )
+#  ) # 129 seconds
 
 ## ----lon-files-----------------------------------------------------------
 #  for(i in 1:length(unique(OISST$lon))){
@@ -56,29 +48,25 @@ knitr::opts_chunk$set(fig.width = 4, fig.align = 'center',
 #  }
 
 ## ----detect-both---------------------------------------------------------
-#  # The 'purrr' wrapper function to pass to 'plyr'
-#  purrr_wraper <- function(file_name){
-#    OISST_file <- readRDS(file_name)
-#    MHW_purrr <- OISST_file %>%
+#  # The 'dplyr' wrapper function to pass to 'plyr'
+#  dplyr_wraper <- function(file_name){
+#    MHW_dplyr <- readRDS(file_name) %>%
 #      group_by(lon, lat) %>%
-#      nest() %>%
-#      mutate(event = map(data, event_only)) %>%
-#      select(-data) %>%
-#      unnest()
+#      group_modify(~event_only(.x))
 #  }
 #  
 #  # Create a vector of the files we want to use
-#  OISST_files <- dir("~/Desktop/", pattern = "OISST_lon_*", full.names = T)
+#  OISST_files <- dir("~/Desktop", pattern = "OISST_lon_*", full.names = T)
 #  
-#  # Use 'plyr' technique to run 'purrr' technique with multiple cores
+#  # Use 'plyr' technique to run 'dplyr' technique with multiple cores
 #  system.time(
-#  MHW_result <- plyr::ldply(OISST_files, .fun = purrr_wraper, .parallel = T)
-#  )
+#  MHW_result <- plyr::ldply(OISST_files, .fun = dplyr_wraper, .parallel = T)
+#  )# 128
 
 ## ----event-tally---------------------------------------------------------
 #  # summarise the number of unique longitude, latitude and year combination:
 #  event_freq <- MHW_result %>%
-#    mutate(year = year(date_start)) %>%
+#    mutate(year = lubridate::year(date_start)) %>%
 #    group_by(lon, lat, year) %>%
 #    summarise(n = n())
 #  head(event_freq)
@@ -106,15 +94,12 @@ knitr::opts_chunk$set(fig.width = 4, fig.align = 'center',
 ## ----apply-trend-fun-purrr-----------------------------------------------
 #  OISST_nTrend <- OISST_n %>%
 #    group_by(lon, lat) %>%
-#    nest() %>%
-#    mutate(res = map(data, lin_fun)) %>%
-#    select(-data) %>%
-#    unnest() %>%
+#    group_modify(~lin_fun(.x)) %>%
 #    mutate(pval = cut(p, breaks = c(0, 0.001, 0.01, 0.05, 1)))
 #  head(OISST_nTrend)
 
 ## ----apply-trend-fun-plyr------------------------------------------------
-#  OISST_nTrend <- plyr::ddply(OISST_n, c("lon", "lat"), lin_fun)
+#  OISST_nTrend <- plyr::ddply(OISST_n, c("lon", "lat"), lin_fun, .parallel = T)
 #  OISST_nTrend$pval <- cut(OISST_nTrend$p, breaks = c(0, 0.001, 0.01, 0.05, 1))
 #  head(OISST_nTrend)
 
