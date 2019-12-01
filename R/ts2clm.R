@@ -54,7 +54,7 @@
 #' researchers use it and so it is generally regarded now as unnecessary.
 #' @param roundClm This argument allows the user to choose how many decimal places
 #' the \code{seas} and \code{thresh} outputs will be rounded to. Default is 4. To
-#' precent rounding set \code{roundClm = FALSE}. This argument may only be given
+#' prevent rounding set \code{roundClm = FALSE}. This argument may only be given
 #' numeric values or FALSE.
 #'
 #' @details
@@ -133,20 +133,19 @@
 #'                   var = TRUE)
 #' res_var[1:10, ]
 #'
-ts2clm <-
-  function(data,
-           x = t,
-           y = temp,
-           climatologyPeriod,
-           robust = FALSE,
-           maxPadLength = FALSE,
-           windowHalfWidth = 5,
-           pctile = 90,
-           smoothPercentile = TRUE,
-           smoothPercentileWidth = 31,
-           clmOnly = FALSE,
-           var = FALSE,
-           roundClm = 4) {
+ts2clm <- function(data,
+                   x = t,
+                   y = temp,
+                   climatologyPeriod,
+                   robust = FALSE,
+                   maxPadLength = FALSE,
+                   windowHalfWidth = 5,
+                   pctile = 90,
+                   smoothPercentile = TRUE,
+                   smoothPercentileWidth = 31,
+                   clmOnly = FALSE,
+                   var = FALSE,
+                   roundClm = 4) {
 
     if (missing(climatologyPeriod))
       stop("Oops! Please provide a period (two dates) for calculating the climatology.")
@@ -187,7 +186,7 @@ ts2clm <-
     if (!is.numeric(ts_y[1]))
       stop("Please ensure the temperature values you are providing are type 'num' for numeric.")
 
-    ts_xy <- data.table::data.table(ts_x = ts_x, ts_y = ts_y)
+    ts_xy <- data.table::data.table(ts_x = ts_x, ts_y = ts_y)[base::order(ts_x)]
     rm(ts_x); rm(ts_y)
 
     ts_whole <- make_whole_fast(ts_xy)

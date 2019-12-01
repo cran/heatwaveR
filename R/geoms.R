@@ -344,6 +344,11 @@ GeomLolli <- ggplot2::ggproto("GeomLolli", ggplot2::Geom,
                                 small_points$size = data$size/2
                                 small_points$colour = "white"
 
+                                # Check if the user is trying to highlight more points than are in the data
+                                if (n > nrow(data)){
+                                  n = nrow(data)
+                                }
+
                                 if (n == 0) {
                                   grid::gList(
                                     ggplot2::GeomSegment$draw_panel(data, panel_scales, coord),
@@ -352,10 +357,10 @@ GeomLolli <- ggplot2::ggproto("GeomLolli", ggplot2::Geom,
                                   )
                                 } else {
                                   # Define the top n events
-                                  data_n = data[1:n,]
-                                  data_n$colour = data$colour_n[1:n]
-                                  big_points_n = big_points[1:n,]
-                                  big_points_n$colour = data$colour_n[1:n]
+                                  data_n = data[seq_len(n),]
+                                  data_n$colour = data$colour_n[seq_len(n)]
+                                  big_points_n = big_points[seq_len(n),]
+                                  big_points_n$colour = data$colour_n[seq_len(n)]
 
                                   grid::gList(
                                     ggplot2::GeomSegment$draw_panel(data, panel_scales, coord),

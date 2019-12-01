@@ -1,11 +1,10 @@
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
 
 <head>
 
 <meta charset="utf-8" />
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
@@ -13,7 +12,7 @@
 
 <meta name="author" content="Robert W Schlegel and AJ Smit" />
 
-<meta name="date" content="2019-09-09" />
+<meta name="date" content="2019-11-29" />
 
 <title>Downloading and Preparing NOAA OISST Data</title>
 
@@ -304,7 +303,7 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 
 <h1 class="title toc-ignore">Downloading and Preparing NOAA OISST Data</h1>
 <h4 class="author">Robert W Schlegel and AJ Smit</h4>
-<h4 class="date">2019-09-09</h4>
+<h4 class="date">2019-11-29</h4>
 
 
 
@@ -322,7 +321,7 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 <a class="sourceLine" id="cb1-4" data-line-number="4"><span class="co"># devtools::install_github(&quot;ropensci/rerddap&quot;)</span></a>
 <a class="sourceLine" id="cb1-5" data-line-number="5"></a>
 <a class="sourceLine" id="cb1-6" data-line-number="6"><span class="co"># Load the packages once they have been downloaded and installed</span></a>
-<a class="sourceLine" id="cb1-7" data-line-number="7"><span class="kw">library</span>(tidyverse)</a>
+<a class="sourceLine" id="cb1-7" data-line-number="7"><span class="kw">library</span>(dplyr)</a>
 <a class="sourceLine" id="cb1-8" data-line-number="8"><span class="kw">library</span>(rerddap)</a>
 <a class="sourceLine" id="cb1-9" data-line-number="9"></a>
 <a class="sourceLine" id="cb1-10" data-line-number="10"><span class="co"># The information for the NOAA OISST data</span></a>
@@ -340,7 +339,7 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 <a class="sourceLine" id="cb2-8" data-line-number="8">                       <span class="dt">latitude =</span> <span class="kw">c</span>(<span class="op">-</span><span class="dv">40</span>, <span class="dv">-35</span>),</a>
 <a class="sourceLine" id="cb2-9" data-line-number="9">                       <span class="dt">longitude =</span> <span class="kw">c</span>(<span class="dv">15</span>, <span class="dv">21</span>),</a>
 <a class="sourceLine" id="cb2-10" data-line-number="10">                       <span class="dt">fields =</span> <span class="st">&quot;sst&quot;</span>)<span class="op">$</span>data <span class="op">%&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb2-11" data-line-number="11"><span class="st">    </span><span class="kw">mutate</span>(<span class="dt">time =</span> <span class="kw">as.Date</span>(<span class="kw">str_remove</span>(time, <span class="st">&quot;T00:00:00Z&quot;</span>))) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb2-11" data-line-number="11"><span class="st">    </span><span class="kw">mutate</span>(<span class="dt">time =</span> <span class="kw">as.Date</span>(stringr<span class="op">::</span><span class="kw">str_remove</span>(time, <span class="st">&quot;T00:00:00Z&quot;</span>))) <span class="op">%&gt;%</span><span class="st"> </span></a>
 <a class="sourceLine" id="cb2-12" data-line-number="12"><span class="st">    </span>dplyr<span class="op">::</span><span class="kw">rename</span>(<span class="dt">t =</span> time, <span class="dt">temp =</span> sst) <span class="op">%&gt;%</span><span class="st"> </span></a>
 <a class="sourceLine" id="cb2-13" data-line-number="13"><span class="st">    </span><span class="kw">select</span>(lon, lat, t, temp) <span class="op">%&gt;%</span><span class="st"> </span></a>
 <a class="sourceLine" id="cb2-14" data-line-number="14"><span class="st">    </span><span class="kw">na.omit</span>()</a>

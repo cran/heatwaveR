@@ -20,10 +20,12 @@ test_that("The seasons by hemisphere come out correctly", {
 test_that("The name argument works correctly", {
   ts <- ts2clm(sst_Med, climatologyPeriod = c("1983-01-01", "2012-12-31"))
   res <- detect_event(ts)
+  cat_res <- category(res)
   cat_res_banana <- category(res, name = "Banana")
   cat_res_pawpaw <- category(res, name = "Pawpaw")
+  expect_equal(droplevels(cat_res$event_name[89]), as.factor("Event 2012b"))
   expect_equal(droplevels(cat_res_banana$event_name[90]), as.factor("Banana 2014"))
-  expect_equal(droplevels(cat_res_pawpaw$event_name[90]), as.factor("Pawpaw 2014"))
+  expect_equal(droplevels(cat_res_pawpaw$event_name[91]), as.factor("Pawpaw 2018a"))
 })
 
 test_that("y = any existing column", {
@@ -48,13 +50,6 @@ test_that("season splits work under all circumstances", {
   expect_equal(cat_res$season[94], "Fall-Spring")
 })
 
-test_that("y = any existing column", {
-  ts <- ts2clm(sst_Med, climatologyPeriod = c("1983-01-01", "2012-12-31"))
-  res <- detect_event(ts)
-  res$climatology$pawpaw <- res$climatology$temp
-  expect_is(category(res, y = pawpaw), "tbl_df")
-})
-
 test_that("climatology = T causes a list output with the time series category data", {
   res <- detect_event(ts2clm(sst_Med, climatologyPeriod = c("1983-01-01", "2012-12-31")))
   cat <- category(res, climatology = T)
@@ -65,12 +60,31 @@ test_that("climatology = T causes a list output with the time series category da
   expect_equal(ncol(cat$event), 11)
 })
 
+test_that("climatology intensity values are correct", {
+  res <- detect_event(ts2clm(sst_Med, climatologyPeriod = c("1983-01-01", "2012-12-31")))
+  cat_daily <- category(res, climatology = T)$climatology
+  expect_is(cat_daily, "tbl_df")
+  expect_equal(ncol(cat_daily), 4)
+  expect_equal(max(cat_daily$intensity), 5.3546)
+  expect_equal(min(cat_daily$intensity), 0.519)
+})
+
+test_that("roundVal works as expected", {
+  res <- detect_event(ts2clm(sst_Med, climatologyPeriod = c("1983-01-01", "2012-12-31")))
+  cat_2 <- category(res, climatology = T, roundVal = 2)
+  cat_4 <- category(res, climatology = T, roundVal = 4)
+  expect_equal(as.character(max(cat_2$event$i_max)), "5.35")
+  expect_equal(as.character(max(cat_4$event$i_max)), "5.3546")
+  expect_equal(as.character(min(cat_2$climatology$intensity)), "0.52")
+  expect_equal(as.character(min(cat_4$climatology$intensity)), "0.519")
+})
+
 test_that("no detected events returns an empty dataframe and not an error", {
   sst_WA_flat <- sst_WA
   sst_WA_flat$temp <- 1
   # sst_WA_flat$temp[4:6] <- 5
   # ts_xy <- ts2clm(sst_WA_flat, climatologyPeriod = c("1983-01-01", "2012-12-31"))
-  suppressWarnings(res <- detect_event(ts2clm(sst_WA_flat, climatologyPeriod = c("1983-01-01", "2012-12-31"))))
+  res <- detect_event(ts2clm(sst_WA_flat, climatologyPeriod = c("1983-01-01", "2012-12-31")))
   cat_event <- category(res, climatology = F)
   cat_clim <- category(res, climatology = T)
   expect_is(cat_event, "tbl_df")

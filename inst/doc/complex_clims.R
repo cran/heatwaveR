@@ -1,17 +1,17 @@
-## ----global_options, include = FALSE-------------------------------------
+## ----global_options, include = FALSE------------------------------------------
 knitr::opts_chunk$set(fig.width = 8, fig.height = 3, fig.align = 'centre',
                       echo = TRUE, warning = FALSE, message = FALSE,
                       eval = TRUE, tidy = FALSE)
 
-## ----load-libs-----------------------------------------------------------
-library(tidyverse)
+## ----load-libs----------------------------------------------------------------
+library(dplyr)
 library(ggpubr)
 library(heatwaveR)
 
-## ----data-prep, eval=T---------------------------------------------------
+## ----data-prep, eval=T--------------------------------------------------------
 Algiers <- Algiers
 
-## ----clim-calc-----------------------------------------------------------
+## ----clim-calc----------------------------------------------------------------
 # The tMax threshold
 # The current WMO standard climatology period is 1981-01-01 to 2010-12-31 and should be used when possible
 # We rather use 1961-01-01 to 1990-01-01 as this is the oldest 30 year period available in the data
@@ -22,13 +22,13 @@ tMax_clim <- ts2clm(data = Algiers, y = tMax, climatologyPeriod = c("1961-01-01"
 # The default marine arguments are 'minDuration = 5' and 'maxGap = 2'
 tMin_exc <- exceedance(data = Algiers, y = tMin, threshold = 19, minDuration = 3, maxGap = 1)$threshold
 
-## ----events--------------------------------------------------------------
+## ----events-------------------------------------------------------------------
 # Note that because we calculated our 90th percentile threshold on a column named 'tMax' 
 # and not the default column name 'temp', we must specify this below with 'y = tMax'
 events <- detect_event(data = tMax_clim, y = tMax, # The 90th percentile threshold
                        threshClim2 = tMin_exc$exceedance) # The flat exceedance threshold
 
-## ----visuals, fig.height=6-----------------------------------------------
+## ----visuals, fig.height=6----------------------------------------------------
 # The code to create a bubble plot for the heatwave results
 bubble_plot <- ggplot(data = events$event, aes(x = date_peak, y = intensity_max)) +
   geom_point(aes(size = intensity_cumulative), shape = 21, fill = "salmon", alpha = 0.8) +
@@ -46,7 +46,7 @@ ggarrange(event_line(events, y = tMax, metric = "intensity_max"),
           bubble_plot,
           ncol = 2, nrow = 2, align = "hv")
 
-## ----alt-two-thresh-calc-------------------------------------------------
+## ----alt-two-thresh-calc------------------------------------------------------
 # Note that because we are not using the standard column name 'temp' we must
 # specify the chosen column name twice, once for ts2clm() and again for detect_event()
 
@@ -70,19 +70,19 @@ events_two_thresh <- detect_event(data = thresh_tMin, y = tMin, minDuration = 10
 # Or to simply use one threshold
 events_one_thresh <- detect_event(data = thresh_tMin, y = tMin, minDuration = 10, maxGap = 2)
 
-## ----alt-two-thresh-lollis-----------------------------------------------
+## ----alt-two-thresh-lollis----------------------------------------------------
 ggarrange(lolli_plot(events_one_thresh), lolli_plot(events_two_thresh), labels = c("One threshold", "Two thresholds"))
 
-## ----alt-two-thresh-events-----------------------------------------------
+## ----alt-two-thresh-events----------------------------------------------------
 head(events_one_thresh$event)
 head(events_two_thresh$event)
 
-## ----event-data-frame----------------------------------------------------
+## ----event-data-frame---------------------------------------------------------
 # Pull out each data.frame as their own object for easier use
 events_one_event <- events_one_thresh$event
 events_one_climatology <- events_one_thresh$climatology
 
-## ----filter-join---------------------------------------------------------
+## ----filter-join--------------------------------------------------------------
 # Join the two threshold dataframes
 two_thresh <- left_join(events_one_climatology, thresh_tMax, by = c("t"))
 
@@ -91,7 +91,7 @@ two_thresh_filtered <- two_thresh %>%
   filter(event.x == TRUE,
          event.y == TRUE)
 
-## ----filter-one-thresh---------------------------------------------------
+## ----filter-one-thresh--------------------------------------------------------
 # Copy data with a new name
 events_one_thresh_filtered <- events_one_thresh
 

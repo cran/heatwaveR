@@ -1,16 +1,17 @@
-## ----global_options, include = FALSE-------------------------------------
+## ----global_options, include = FALSE------------------------------------------
 knitr::opts_chunk$set(fig.width = 4, fig.align = 'center',
                       echo = TRUE, warning = FALSE, message = FALSE, 
                       eval = FALSE, tidy = FALSE)
 
-## ----load-pkg------------------------------------------------------------
-#  library(tidyverse)
+## ----load-pkg-----------------------------------------------------------------
+#  library(dplyr)
+#  library(ggplot2)
 #  library(heatwaveR)
 
-## ----load-data-----------------------------------------------------------
-#  OISST <- read_rds("~/Desktop/OISST_vignette.Rda")
+## ----load-data----------------------------------------------------------------
+#  OISST <- readRDS("~/Desktop/OISST_vignette.Rda")
 
-## ----detect-func---------------------------------------------------------
+## ----detect-func--------------------------------------------------------------
 #  event_only <- function(df){
 #    # First calculate the climatologies
 #    clim <- ts2clm(data = df, climatologyPeriod = c("1982-01-01", "2011-01-01"))
@@ -20,34 +21,34 @@ knitr::opts_chunk$set(fig.width = 4, fig.align = 'center',
 #    return(event$event)
 #  }
 
-## ----detect-purrr--------------------------------------------------------
+## ----detect-purrr-------------------------------------------------------------
 #  system.time(
 #  # First we start by chosing the 'OISST' dataframe
 #  MHW_dplyr <- OISST %>%
 #    # Then we group the data by the 'lon' and 'lat' columns
 #    group_by(lon, lat) %>%
-#    # Then we run our MHW calculating function on each group
+#    # Then we run our MHW detecting function on each group
 #    group_modify(~event_only(.x))
-#  ) # 214 seconds
+#  ) # 90 seconds
 
-## ----detect-plyr---------------------------------------------------------
+## ----detect-plyr--------------------------------------------------------------
 #  # NB: One should never use ALL available cores, save at least 1 for other essential tasks
-#  # The computer I'm writing this vignette on has 4 cores, so I use 3 here
+#  # The computer I'm writing this vignette on has 8 cores, so I use 7 here
 #  library(doMC)
-#  registerDoMC(cores = 3)
+#  registerDoMC(cores = 7)
 #  
 #  system.time(
 #  MHW_plyr <- plyr::ddply(.data = OISST, .variables = c("lon", "lat"), .fun = event_only, .parallel = TRUE)
-#  ) # 129 seconds
+#  ) # 25 seconds
 
-## ----lon-files-----------------------------------------------------------
+## ----lon-files----------------------------------------------------------------
 #  for(i in 1:length(unique(OISST$lon))){
 #    OISST_sub <- OISST %>%
 #      filter(lon == unique(lon)[i])
 #    saveRDS(object = OISST_sub, file = paste0("~/Desktop/OISST_lon_",i,".Rda"))
 #  }
 
-## ----detect-both---------------------------------------------------------
+## ----detect-both--------------------------------------------------------------
 #  # The 'dplyr' wrapper function to pass to 'plyr'
 #  dplyr_wraper <- function(file_name){
 #    MHW_dplyr <- readRDS(file_name) %>%
@@ -61,9 +62,9 @@ knitr::opts_chunk$set(fig.width = 4, fig.align = 'center',
 #  # Use 'plyr' technique to run 'dplyr' technique with multiple cores
 #  system.time(
 #  MHW_result <- plyr::ldply(OISST_files, .fun = dplyr_wraper, .parallel = T)
-#  )# 128
+#  ) # 24 seconds
 
-## ----event-tally---------------------------------------------------------
+## ----event-tally--------------------------------------------------------------
 #  # summarise the number of unique longitude, latitude and year combination:
 #  event_freq <- MHW_result %>%
 #    mutate(year = lubridate::year(date_start)) %>%
@@ -82,7 +83,7 @@ knitr::opts_chunk$set(fig.width = 4, fig.align = 'center',
 #  OISST_n <- left_join(sst_grid, event_freq, by = c("lon", "lat", "year")) %>%
 #    mutate(n = ifelse(is.na(n), 0, n))
 
-## ----trend-fun-----------------------------------------------------------
+## ----trend-fun----------------------------------------------------------------
 #  lin_fun <- function(ev) {
 #    mod1 <- glm(n ~ year, family = poisson(link = "log"), data = ev)
 #    # extract slope coefficient and its p-value
@@ -91,24 +92,24 @@ knitr::opts_chunk$set(fig.width = 4, fig.align = 'center',
 #    return(tr)
 #  }
 
-## ----apply-trend-fun-purrr-----------------------------------------------
+## ----apply-trend-fun-purrr----------------------------------------------------
 #  OISST_nTrend <- OISST_n %>%
 #    group_by(lon, lat) %>%
 #    group_modify(~lin_fun(.x)) %>%
 #    mutate(pval = cut(p, breaks = c(0, 0.001, 0.01, 0.05, 1)))
 #  head(OISST_nTrend)
 
-## ----apply-trend-fun-plyr------------------------------------------------
+## ----apply-trend-fun-plyr-----------------------------------------------------
 #  OISST_nTrend <- plyr::ddply(OISST_n, c("lon", "lat"), lin_fun, .parallel = T)
 #  OISST_nTrend$pval <- cut(OISST_nTrend$p, breaks = c(0, 0.001, 0.01, 0.05, 1))
 #  head(OISST_nTrend)
 
-## ----prep-geography------------------------------------------------------
+## ----prep-geography-----------------------------------------------------------
 #  # The base map
 #  map_base <- ggplot2::fortify(maps::map(fill = TRUE, plot = FALSE)) %>%
 #    dplyr::rename(lon = long)
 
-## ----the-figure----------------------------------------------------------
+## ----the-figure---------------------------------------------------------------
 #  map_slope <- ggplot(OISST_nTrend, aes(x = lon, y = lat)) +
 #    geom_rect(size = 0.2, fill = NA,
 #         aes(xmin = lon - 0.1, xmax = lon + 0.1, ymin = lat - 0.1, ymax = lat + 0.1,

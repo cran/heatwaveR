@@ -1,11 +1,12 @@
-## ----global_options, include = FALSE-------------------------------------
+## ----global_options, include = FALSE------------------------------------------
 knitr::opts_chunk$set(fig.width = 8, fig.height = 3, fig.align = 'centre',
                       echo = TRUE, warning = FALSE, message = FALSE,
                       eval = TRUE, tidy = FALSE)
 
-## ----category-example1---------------------------------------------------
+## ----category-example1--------------------------------------------------------
 # Load libraries
-library(tidyverse)
+library(dplyr)
+library(ggplot2)
 library(heatwaveR)
 
 # Calculate events
@@ -16,15 +17,15 @@ MHW_cat <- category(mhw, S = TRUE, name = "WA")
 # Look at the top few events
 tail(MHW_cat)
 
-## ----category-example2---------------------------------------------------
+## ----category-example2--------------------------------------------------------
 res_Med <- detect_event(ts2clm(sst_Med, climatologyPeriod = c("1982-01-01", "2011-12-31")))
 res_Med_cat <- category(res_Med, S = FALSE, name = "Med")
 tail(res_Med_cat)
 
-## ----fig-example-1, echo = TRUE, eval = TRUE-----------------------------
+## ----fig-example-1, echo = TRUE, eval = TRUE----------------------------------
 event_line(mhw, spread = 100, start_date = "2010-11-01", end_date = "2011-06-30", category = TRUE)
 
-## ----fig-example-2, echo = TRUE, eval = TRUE-----------------------------
+## ----fig-example-2, echo = TRUE, eval = TRUE----------------------------------
 # Create category breaks and select slice of data.frame
 clim_cat <- mhw$clim %>%
   dplyr::mutate(diff = thresh - seas,

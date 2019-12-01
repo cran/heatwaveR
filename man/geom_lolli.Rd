@@ -4,8 +4,15 @@
 \alias{geom_lolli}
 \title{Visualise a timeline of several event metrics as 'lollipops'.}
 \usage{
-geom_lolli(mapping = NULL, data = NULL, ..., n = 0, na.rm = FALSE,
-  show.legend = NA, inherit.aes = TRUE)
+geom_lolli(
+  mapping = NULL,
+  data = NULL,
+  ...,
+  n = 0,
+  na.rm = FALSE,
+  show.legend = NA,
+  inherit.aes = TRUE
+)
 }
 \arguments{
 \item{mapping}{Set of aesthetic mappings created by \code{aes()} or \code{aes_()}. If
@@ -90,7 +97,7 @@ library(ggplot2)
 # are mapped to the events' cumulative intensity:
 ggplot(mhw, aes(x = date_peak, y = duration)) +
   geom_lolli(aes(colour = intensity_cumulative)) +
-  scale_color_distiller(palette = "Spectral", name = "Cumulative \\nintensity") +
+  scale_color_distiller(palette = "Spectral", name = "Cumulative \nintensity") +
   xlab("Date") + ylab("Event duration [days]")
 
 # Height of lollis represent event durations and the top three (longest)
@@ -104,7 +111,7 @@ ggplot(mhw, aes(x = date_peak, y = duration)) +
 # may be done with it:
 ggplot(mhw, aes(x = event_no, y = intensity_max)) +
   geom_lolli(shape = 5, aes(colour = rate_onset), linetype = "dotted") +
-  scale_color_distiller(palette = "RdYlGn", name = "Rate \\nonset") +
+  scale_color_distiller(palette = "RdYlGn", name = "Rate \nonset") +
   xlab("Event number") + ylab("Max intensity [degree C]")
 
 }

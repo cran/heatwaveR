@@ -1,11 +1,12 @@
-## ----global_options, include = FALSE-------------------------------------
+## ----global_options, include = FALSE------------------------------------------
 knitr::opts_chunk$set(fig.width = 8, fig.height = 3, fig.align = 'centre',
                       echo = TRUE, warning = FALSE, message = FALSE,
                       eval = TRUE, tidy = FALSE)
 
-## ----exceedance-example1-------------------------------------------------
+## ----exceedance-example1------------------------------------------------------
 # Activate libraries
-library(tidyverse)
+library(dplyr)
+library(ggplot2)
 library(heatwaveR)
 
 # Calculate exceedence
@@ -18,7 +19,7 @@ exc_25$exceedance %>%
   dplyr::arrange(-intensity_cumulative) %>%
   head(5)
 
-## ----fig-example1, echo = TRUE, eval = TRUE------------------------------
+## ----fig-example1, echo = TRUE, eval = TRUE-----------------------------------
 exc_25_thresh <- exc_25$threshold %>% 
   slice(9500:9866)
 
@@ -33,7 +34,7 @@ ggplot(data = exc_25_thresh, aes(x = t)) +
   scale_x_date(date_labels = "%b %Y") +
   labs(y = expression(paste("Temperature [", degree, "C]")), x = NULL)
 
-## ----exceedance-example2-------------------------------------------------
+## ----exceedance-example2------------------------------------------------------
 exc_19 <- exceedance(sst_WA, threshold = 19, below = TRUE)
 exc_19$exceedance %>%
   dplyr::ungroup() %>%
@@ -41,7 +42,7 @@ exc_19$exceedance %>%
   dplyr::arrange(intensity_cumulative) %>%
   head(5)
 
-## ----fig-example2, echo = TRUE, eval = TRUE------------------------------
+## ----fig-example2, echo = TRUE, eval = TRUE-----------------------------------
 exc_19_thresh <- exc_19$threshold %>% 
   slice(1500:1866)
 

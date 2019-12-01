@@ -1,14 +1,14 @@
-## ----global_options, include = FALSE-------------------------------------
+## ----global_options, include = FALSE------------------------------------------
 knitr::opts_chunk$set(fig.width = 8, fig.height = 3, fig.align = 'centre',
                       echo = TRUE, warning = FALSE, message = FALSE,
                       eval = TRUE, tidy = FALSE)
 
-## ----file-structure------------------------------------------------------
+## ----file-structure-----------------------------------------------------------
 head(heatwaveR::sst_WA)
 
-## ----detect-example1-----------------------------------------------------
-# Load libraries
-library(tidyverse)
+## ----detect-example1----------------------------------------------------------
+library(dplyr)
+library(ggplot2)
 library(heatwaveR)
 
 # Detect the events in a time series
@@ -22,13 +22,13 @@ mhw$event %>%
   dplyr::arrange(-intensity_max) %>% 
   head(5)
 
-## ----fig-example1, echo = TRUE, eval = TRUE------------------------------
+## ----fig-example1, echo = TRUE, eval = TRUE-----------------------------------
 event_line(mhw, spread = 180, metric = "intensity_max", 
            start_date = "1982-01-01", end_date = "2014-12-31")
 
 lolli_plot(mhw, metric = "intensity_max")
 
-## ----fig-example2, echo = TRUE, eval = TRUE------------------------------
+## ----fig-example2, echo = TRUE, eval = TRUE-----------------------------------
 # Select the region of the time series of interest
 mhw2 <- mhw$climatology %>% 
   slice(10580:10720)
@@ -43,7 +43,7 @@ ggplot(mhw$event, aes(x = date_start, y = intensity_max)) +
                 label = "The marine heatwaves\nTend to be left skewed in a\nGiven time series")) +
   labs(y = expression(paste("Max. intensity [", degree, "C]")), x = NULL)
 
-## ----fig-example3, echo = TRUE, eval = TRUE------------------------------
+## ----fig-example3, echo = TRUE, eval = TRUE-----------------------------------
 # It is necessary to give geom_flame() at least one row on either side of 
 # the event in order to calculate the polygon corners smoothly
 mhw_top <- mhw2 %>% 
@@ -66,7 +66,7 @@ ggplot(data = mhw2, aes(x = t)) +
   guides(colour = guide_legend(override.aes = list(fill = NA))) +
   labs(y = expression(paste("Temperature [", degree, "C]")), x = NULL)
 
-## ----flame_gaps----------------------------------------------------------
+## ----flame_gaps---------------------------------------------------------------
 mhw3 <- mhw$climatology %>% 
   slice(850:950)
 
@@ -78,14 +78,14 @@ ggplot(mhw3, aes(x = t, y = temp, y2 = thresh)) +
     geom_text(colour = "black", aes(x = as.Date("1984-05-16"), y = 24.5,
                 label = "heat\n\n\n\n\nspike"))
 
-## ----fig-example4, echo = TRUE, eval = TRUE------------------------------
+## ----fig-example4, echo = TRUE, eval = TRUE-----------------------------------
 ggplot(mhw$event, aes(x = date_peak, y = intensity_max)) +
   geom_lolli(colour = "firebrick") +
   labs(x = "Peak Date", 
        y = expression(paste("Max. intensity [", degree, "C]")), x = NULL) +
   theme_linedraw()
 
-## ----detect-example2-----------------------------------------------------
+## ----detect-example2----------------------------------------------------------
 # First calculate the cold-spells
 ts_10th <- ts2clm(sst_WA, climatologyPeriod = c("1982-01-01", "2011-12-31"), pctile = 10)
 mcs <- detect_event(ts_10th, coldSpells = TRUE)
@@ -98,13 +98,13 @@ mcs$event %>%
   dplyr::arrange(intensity_cumulative) %>% 
   head(5)
 
-## ----fig-example5, echo = TRUE, eval = TRUE------------------------------
+## ----fig-example5, echo = TRUE, eval = TRUE-----------------------------------
 event_line(mcs, spread = 200, metric = "intensity_cumulative",
            start_date = "1982-01-01", end_date = "2014-12-31")
 
 lolli_plot(mcs, metric = "intensity_cumulative", xaxis = "event_no")
 
-## ----fig-example6, echo = TRUE, eval = TRUE------------------------------
+## ----fig-example6, echo = TRUE, eval = TRUE-----------------------------------
 # Select the region of the time series of interest
 mcs2 <- mcs$climatology %>% 
   slice(2900:3190)
@@ -118,7 +118,7 @@ ggplot(mcs$event, aes(x = date_start, y = intensity_max)) +
   labs(x = "Start Date",
        y = expression(paste("Max. intensity [", degree, "C]")))
 
-## ----fig-example7, echo = TRUE, eval = TRUE------------------------------
+## ----fig-example7, echo = TRUE, eval = TRUE-----------------------------------
 mcs_top <- mcs2 %>% 
   slice(125:202)
 
@@ -139,7 +139,7 @@ ggplot(mcs$event, aes(x = date_start, y = intensity_cumulative)) +
   geom_lolli(colour = "steelblue3", colour_n = "navy", n = 7) +
   labs( x = "Start Date", y = expression(paste("Cumulative intensity [days x ", degree, "C]")))
 
-## ----plotly-example, eval=FALSE------------------------------------------
+## ----plotly-example, eval=FALSE-----------------------------------------------
 #  # Must load plotly library first
 #  library(plotly)
 #  

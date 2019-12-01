@@ -4,9 +4,18 @@
 \alias{geom_flame}
 \title{Create 'flame' polygons.}
 \usage{
-geom_flame(mapping = NULL, data = NULL, stat = "identity",
-  position = "identity", ..., n = 0, n_gap = 0, na.rm = FALSE,
-  show.legend = NA, inherit.aes = TRUE)
+geom_flame(
+  mapping = NULL,
+  data = NULL,
+  stat = "identity",
+  position = "identity",
+  ...,
+  n = 0,
+  n_gap = 0,
+  na.rm = FALSE,
+  show.legend = NA,
+  inherit.aes = TRUE
+)
 }
 \arguments{
 \item{mapping}{Set of aesthetic mappings created by \code{aes()} or \code{aes_()}.
@@ -101,7 +110,7 @@ library(ggplot2)
 ggplot(mhw, aes(x = t, y = temp)) +
   geom_flame(aes(y2 = thresh)) +
   geom_text(aes(x = as.Date("2011-02-01"), y = 28,
-            label = "That's not a heatwave.\\nThis, is a heatwave.")) +
+            label = "That's not a heatwave.\nThis, is a heatwave.")) +
   xlab("Date") + ylab(expression(paste("Temperature [", degree, "C]")))
 
 }

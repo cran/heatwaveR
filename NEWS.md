@@ -1,3 +1,51 @@
+# heatwaveR 0.4.2 (2019-11-29)
+
+* Publishing new stable version to CRAN due to removal of __`tidyverse`__ from the list of suggested packages
+  and the important bug fixes to `category()`
+
+# heatwaveR 0.4.2 (2019-11-26)
+
+* Fixed bug in `category()` that incorrectly returned the difference between `seas` and `thresh` 
+  as the daily intensity value, rather than the actual temperature anomaly above `seas`   
+    * Also fixed the labelling of days below `thresh` as `Moderate`, they are now `NA` 
+* `category()` now adds lower case letters to the ends of event names if there were multiple
+  large events within the same year
+    * This may cause backwards compatibility issues in very rare cases, but is a necessary change
+* Added `roundVal` argument to `category()` to allow users to decide the rounding precision of 
+  the returned results
+
+# heatwaveR 0.4.1.9004 (2019-11-23)
+
+* Tripled the resolution of the logo in anticipation of creating hex stickers
+
+# heatwaveR 0.4.1.9004 (2019-11-19)
+
+* Removed __`tidyverse`__ from the list of suggested packages
+
+# heatwaveR 0.4.1.9003 (2019-11-03)
+
+* The potentially backward compatibility breaking design change to have empty data.frames returned as one row of `NA` values was not as rare of a problem as first thought
+* While still respecting the need to not use `1:n` vector creation, `detect_event()` and `category()` now produce empty data.frames and not one row `NA` dataframe
+* This should ensure continued backwards compatibility
+
+# heatwaveR 0.4.1.9002 (2019-11-03)
+
+* A bug was discovered where the `ts2clm()` function does not first check that the time series being fed to it is in correct chronological order
+  * This was fixed by ordering the data being fed to the function before beginning of the further calculations
+
+# heatwaveR 0.4.1.9001 (2019-10-30)
+
+* An update to `data.table` sometime in August, 2019 reduced the packages tolerance for code with `1:n` in it
+  * As this is a potential memory weakness, when this creates an empty vector in multicore calculations it causes the entire run to fall over
+  * Therefore, all use of `1:n` has been replaced with `seq_len(n)`
+  * This changed the list outputs when no MHWs are detected to be one row of NA values, rather than an empty list 
+  * This may cause backward compatibility issues, but is extremely unlikely
+
+# heatwaveR 0.4.1.9000 (2019-10-26)
+
+* An update to the `ggplot2` package some time back in August, 2019 changed slightly how Geoms work internally
+  * This allowed `geom_lolli()` to fall over in very rare circumstances so this issue has been addressed
+
 # heatwaveR 0.4.1 (2019-09-09)
 
 * Updated the `OISST Preparation` vignette to match the improvements to the `rerddap` package
