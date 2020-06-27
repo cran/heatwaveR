@@ -4,12 +4,14 @@ knitr::opts_chunk$set(fig.width = 4, fig.align = 'center',
                       eval = FALSE, tidy = FALSE)
 
 ## ----load-pkg-----------------------------------------------------------------
-#  library(dplyr)
-#  library(ggplot2)
-#  library(heatwaveR)
+#  library(dplyr) # For basic data manipulation
+#  library(ggplot2) # For visualising data
+#  library(heatwaveR) # For detecting MHWs
+#  library(tidync) # For easily dealing with NetCDF data
+#  library(doParallel) # For parallel processing
 
 ## ----load-data----------------------------------------------------------------
-#  OISST <- readRDS("~/Desktop/OISST_vignette.Rda")
+#  OISST <- readRDS("~/Desktop/OISST_vignette.Rds")
 
 ## ----detect-func--------------------------------------------------------------
 #  event_only <- function(df){
@@ -23,29 +25,29 @@ knitr::opts_chunk$set(fig.width = 4, fig.align = 'center',
 
 ## ----detect-purrr-------------------------------------------------------------
 #  system.time(
-#  # First we start by chosing the 'OISST' dataframe
+#  # First we start by choosing the 'OISST' dataframe
 #  MHW_dplyr <- OISST %>%
 #    # Then we group the data by the 'lon' and 'lat' columns
 #    group_by(lon, lat) %>%
 #    # Then we run our MHW detecting function on each group
 #    group_modify(~event_only(.x))
-#  ) # 90 seconds
+#  ) # ~123 seconds
 
 ## ----detect-plyr--------------------------------------------------------------
 #  # NB: One should never use ALL available cores, save at least 1 for other essential tasks
 #  # The computer I'm writing this vignette on has 8 cores, so I use 7 here
-#  library(doMC)
-#  registerDoMC(cores = 7)
+#  registerDoParallel(cores = 7)
 #  
+#  # Detect events
 #  system.time(
 #  MHW_plyr <- plyr::ddply(.data = OISST, .variables = c("lon", "lat"), .fun = event_only, .parallel = TRUE)
-#  ) # 25 seconds
+#  ) # 33 seconds
 
 ## ----lon-files----------------------------------------------------------------
 #  for(i in 1:length(unique(OISST$lon))){
 #    OISST_sub <- OISST %>%
 #      filter(lon == unique(lon)[i])
-#    saveRDS(object = OISST_sub, file = paste0("~/Desktop/OISST_lon_",i,".Rda"))
+#    saveRDS(object = OISST_sub, file = paste0("~/Desktop/OISST_lon_",i,".Rds"))
 #  }
 
 ## ----detect-both--------------------------------------------------------------
@@ -55,21 +57,20 @@ knitr::opts_chunk$set(fig.width = 4, fig.align = 'center',
 #      group_by(lon, lat) %>%
 #      group_modify(~event_only(.x))
 #  }
-#  
 #  # Create a vector of the files we want to use
 #  OISST_files <- dir("~/Desktop", pattern = "OISST_lon_*", full.names = T)
 #  
 #  # Use 'plyr' technique to run 'dplyr' technique with multiple cores
 #  system.time(
 #  MHW_result <- plyr::ldply(OISST_files, .fun = dplyr_wraper, .parallel = T)
-#  ) # 24 seconds
+#  ) # 31 seconds
 
 ## ----event-tally--------------------------------------------------------------
 #  # summarise the number of unique longitude, latitude and year combination:
 #  event_freq <- MHW_result %>%
 #    mutate(year = lubridate::year(date_start)) %>%
 #    group_by(lon, lat, year) %>%
-#    summarise(n = n())
+#    summarise(n = n(), .groups = "drop")
 #  head(event_freq)
 #  
 #  # create complete grid for merging with:
@@ -91,13 +92,6 @@ knitr::opts_chunk$set(fig.width = 4, fig.align = 'center',
 #                     p = summary(mod1)$coefficients[2,4])
 #    return(tr)
 #  }
-
-## ----apply-trend-fun-purrr----------------------------------------------------
-#  OISST_nTrend <- OISST_n %>%
-#    group_by(lon, lat) %>%
-#    group_modify(~lin_fun(.x)) %>%
-#    mutate(pval = cut(p, breaks = c(0, 0.001, 0.01, 0.05, 1)))
-#  head(OISST_nTrend)
 
 ## ----apply-trend-fun-plyr-----------------------------------------------------
 #  OISST_nTrend <- plyr::ddply(OISST_n, c("lon", "lat"), lin_fun, .parallel = T)
