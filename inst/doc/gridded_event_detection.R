@@ -67,22 +67,14 @@ knitr::opts_chunk$set(fig.width = 4, fig.align = 'center',
 
 ## ----event-tally--------------------------------------------------------------
 #  # summarise the number of unique longitude, latitude and year combination:
-#  event_freq <- MHW_result %>%
+#  OISST_n <- MHW_result %>%
 #    mutate(year = lubridate::year(date_start)) %>%
 #    group_by(lon, lat, year) %>%
-#    summarise(n = n(), .groups = "drop")
-#  head(event_freq)
-#  
-#  # create complete grid for merging with:
-#  sst_grid <- OISST %>%
-#    select(lon, lat, t) %>%
-#    mutate(t = lubridate::year(t)) %>%
-#    dplyr::rename(year = t) %>%
-#    distinct()
-#  
-#  # and merge:
-#  OISST_n <- left_join(sst_grid, event_freq, by = c("lon", "lat", "year")) %>%
+#    summarise(n = n(), .groups = "drop") %>%
+#    group_by(lon, lat) %>%
+#    tidyr::complete(year = c(1982:2019)) %>% # Note that these dates may differ
 #    mutate(n = ifelse(is.na(n), 0, n))
+#  head(OISST_n)
 
 ## ----trend-fun----------------------------------------------------------------
 #  lin_fun <- function(ev) {

@@ -1,7 +1,7 @@
 #' Constructs a continuous, uninterrupted time series of temperatures.
 #'
 #' Takes a series of dates and temperatures, and if irregular (but ordered), inserts
-#' missing dates and fills correpsonding temperatures with NAs.
+#' missing dates and fills corresponding temperatures with NAs.
 #'
 #' @importFrom dplyr %>%
 #'
@@ -66,27 +66,43 @@
 #'
 make_whole <- function(data, x = t, y = temp) {
 
-  temp <- NULL
+  temp <- doy <- NULL
   feb28 <- 59
 
   ts_x <- eval(substitute(x), data)
   ts_y <- eval(substitute(y), data)
-  dat <- tibble::tibble(ts_x, ts_y)
+  dat <- data.frame(ts_x, ts_y)
   rm(ts_x); rm(ts_y)
 
   dat <- dat %>%
     dplyr::group_by(ts_x) %>%
     dplyr::summarise(ts_y = mean(ts_y, na.rm = TRUE)) %>%
     dplyr::ungroup()
-  t_series <- zoo::zoo(dat$ts_y, dat$ts_x)
-  ser <- data.frame(ts_x = seq(stats::start(t_series),
-                               stats::end(t_series), by = "1 day"))
-  ser <- zoo::zoo(rep(NA, length(ser$ts_x)), order.by = ser$ts_x)
-  t_series <- merge(ser, t_series)[, 2]
 
-  t_series <- data.table::data.table(doy = lubridate::yday(t_series),
-                                     date = as.Date(as.POSIXct(t_series)),
-                                     ts_y = as.numeric(t_series))
+  ser <- data.frame(ts_x = seq(min(lubridate::ymd(dat$ts_x)),
+                               max(lubridate::ymd(dat$ts_x)), by = "1 day"))
+
+  t_series <- ser %>%
+    dplyr::left_join(y = dat, by = "ts_x") %>%
+    dplyr::mutate(doy = lubridate::yday(ts_x),
+           date = as.Date(as.POSIXct(ts_x)),
+           ts_y = as.numeric(ts_y)) %>%
+    dplyr::select(doy, date, ts_y, -ts_x)
+  rm(ser); rm(dat)
+
+  # Lines 82-91 may be replaced by this (below) but this requires tidyr :-(
+  # However, tidyr is listed as 'Suggests', which means it is sometimes loaded by other packages
+  # as and when needed. This function (`make_whole`) is not used by default (it needs to be enabled
+  # when needed if `make_whole_fast` fails, so perhaps this is good enough reason to use the more
+  # efficient code that relies on tidyr instead of lines 82-91...?)
+  #
+  # t_series <- dat %>%
+  #   dplyr::rename(date = ts_x) %>%
+  #   dplyr::mutate(date = as.Date(as.POSIXct(date)),
+  #                 ts_y = as.numeric(ts_y)) %>%
+  #   tidyr::complete(date = seq.Date(min(lubridate::ymd(ts_x)), max(lubridate::ymd(ts_x)), by = "day")) %>%
+  #   dplyr::mutate(doy = lubridate::yday(date)) %>%
+  #   dplyr::select(doy, date, ts_y)
 
   t_series$doy <- as.integer(ifelse(
     lubridate::leap_year(lubridate::year(t_series$date)) == FALSE,

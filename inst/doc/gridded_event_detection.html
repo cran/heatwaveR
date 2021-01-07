@@ -12,7 +12,7 @@
 
 <meta name="author" content="Robert W Schlegel and AJ Smit" />
 
-<meta name="date" content="2020-06-27" />
+<meta name="date" content="2021-01-07" />
 
 <title>Detecting Events in Gridded Data</title>
 
@@ -32,6 +32,15 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 </script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
 
 
 <style type="text/css">code{white-space: pre;}</style>
@@ -122,6 +131,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
   }
 })();
 </script>
+
 
 
 
@@ -319,7 +329,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 <h1 class="title toc-ignore">Detecting Events in Gridded Data</h1>
 <h4 class="author">Robert W Schlegel and AJ Smit</h4>
-<h4 class="date">2020-06-27</h4>
+<h4 class="date">2021-01-07</h4>
 
 
 
@@ -407,28 +417,20 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 </div>
 <div id="case-study" class="section level2">
 <h2>Case study</h2>
-<p>Because of human-induced climate change, we anticipate that extreme events will occur more frequently and that they will become greater in intensity. Here we investigate this hypothesis by using gridded SST data, which is the only way that we can assess if this trend is unfolding across large ocean regions. Using the gridded <a href="http://dx.doi.org/10.1175/2007JCLI1824.1">0.25 degree Reynolds OISST</a>, we will detect marine heatwaves (MHWs) around South Africa by applying the <code>detect_event()</code> function pixel-by-pixel to the data we downloaded in <a href="https://robwschlegel.github.io/heatwaveR/articles/OISST_preparation.html">the previous vignette</a>. After detecting the events, we will fit a generalised linear model (GLM) to each pixel to calculate rates of change in some MHW metrics, and then plot the estimated trends.</p>
+<p>Because of human-induced climate change, we anticipate that extreme events will occur more frequently and that they will become greater in intensity. Here we investigate this hypothesis by using gridded SST data, which is the only way that we can assess if this trend is unfolding across large ocean regions. Using the gridded 0.25 degree Reynolds OISST, we will detect marine heatwaves (MHWs) around South Africa by applying the <code>detect_event()</code> function pixel-by-pixel to the data we downloaded in <a href="https://robwschlegel.github.io/heatwaveR/articles/OISST_preparation.html">the previous vignette</a>. After detecting the events, we will fit a generalised linear model (GLM) to each pixel to calculate rates of change in some MHW metrics, and then plot the estimated trends.</p>
 <div id="trend-detection" class="section level3">
 <h3>Trend detection</h3>
 <p>With our MHW detected we will now look at how to fit some GLMs to the results in order to determine long-term trends in MHW occurrence.</p>
 <p>Up first we see how to calculate the number of events that occurred per pixel.</p>
 <div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1"></a><span class="co"># summarise the number of unique longitude, latitude and year combination:</span></span>
-<span id="cb8-2"><a href="#cb8-2"></a>event_freq &lt;-<span class="st"> </span>MHW_result <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb8-2"><a href="#cb8-2"></a>OISST_n &lt;-<span class="st"> </span>MHW_result <span class="op">%&gt;%</span><span class="st"> </span></span>
 <span id="cb8-3"><a href="#cb8-3"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">year =</span> lubridate<span class="op">::</span><span class="kw">year</span>(date_start)) <span class="op">%&gt;%</span><span class="st"> </span></span>
 <span id="cb8-4"><a href="#cb8-4"></a><span class="st">  </span><span class="kw">group_by</span>(lon, lat, year) <span class="op">%&gt;%</span><span class="st"> </span></span>
-<span id="cb8-5"><a href="#cb8-5"></a><span class="st">  </span><span class="kw">summarise</span>(<span class="dt">n =</span> <span class="kw">n</span>(), <span class="dt">.groups =</span> <span class="st">&quot;drop&quot;</span>)</span>
-<span id="cb8-6"><a href="#cb8-6"></a><span class="kw">head</span>(event_freq)</span>
-<span id="cb8-7"><a href="#cb8-7"></a></span>
-<span id="cb8-8"><a href="#cb8-8"></a><span class="co"># create complete grid for merging with:</span></span>
-<span id="cb8-9"><a href="#cb8-9"></a>sst_grid &lt;-<span class="st"> </span>OISST <span class="op">%&gt;%</span><span class="st"> </span></span>
-<span id="cb8-10"><a href="#cb8-10"></a><span class="st">  </span><span class="kw">select</span>(lon, lat, t) <span class="op">%&gt;%</span><span class="st"> </span></span>
-<span id="cb8-11"><a href="#cb8-11"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">t =</span> lubridate<span class="op">::</span><span class="kw">year</span>(t)) <span class="op">%&gt;%</span><span class="st"> </span></span>
-<span id="cb8-12"><a href="#cb8-12"></a><span class="st">  </span>dplyr<span class="op">::</span><span class="kw">rename</span>(<span class="dt">year =</span> t) <span class="op">%&gt;%</span><span class="st"> </span></span>
-<span id="cb8-13"><a href="#cb8-13"></a><span class="st">  </span><span class="kw">distinct</span>()</span>
-<span id="cb8-14"><a href="#cb8-14"></a></span>
-<span id="cb8-15"><a href="#cb8-15"></a><span class="co"># and merge:</span></span>
-<span id="cb8-16"><a href="#cb8-16"></a>OISST_n &lt;-<span class="st"> </span><span class="kw">left_join</span>(sst_grid, event_freq, <span class="dt">by =</span> <span class="kw">c</span>(<span class="st">&quot;lon&quot;</span>, <span class="st">&quot;lat&quot;</span>, <span class="st">&quot;year&quot;</span>)) <span class="op">%&gt;%</span><span class="st"> </span></span>
-<span id="cb8-17"><a href="#cb8-17"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">n =</span> <span class="kw">ifelse</span>(<span class="kw">is.na</span>(n), <span class="dv">0</span>, n))</span></code></pre></div>
+<span id="cb8-5"><a href="#cb8-5"></a><span class="st">  </span><span class="kw">summarise</span>(<span class="dt">n =</span> <span class="kw">n</span>(), <span class="dt">.groups =</span> <span class="st">&quot;drop&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb8-6"><a href="#cb8-6"></a><span class="st">  </span><span class="kw">group_by</span>(lon, lat) <span class="op">%&gt;%</span></span>
+<span id="cb8-7"><a href="#cb8-7"></a><span class="st">  </span>tidyr<span class="op">::</span><span class="kw">complete</span>(<span class="dt">year =</span> <span class="kw">c</span>(<span class="dv">1982</span><span class="op">:</span><span class="dv">2019</span>)) <span class="op">%&gt;%</span><span class="st"> </span><span class="co"># Note that these dates may differ</span></span>
+<span id="cb8-8"><a href="#cb8-8"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">n =</span> <span class="kw">ifelse</span>(<span class="kw">is.na</span>(n), <span class="dv">0</span>, n))</span>
+<span id="cb8-9"><a href="#cb8-9"></a><span class="kw">head</span>(OISST_n)</span></code></pre></div>
 <p>Then we specify the particulars of the GLM we are going to use.</p>
 <div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1"></a>lin_fun &lt;-<span class="st"> </span><span class="cf">function</span>(ev) {</span>
 <span id="cb9-2"><a href="#cb9-2"></a>  mod1 &lt;-<span class="st"> </span><span class="kw">glm</span>(n <span class="op">~</span><span class="st"> </span>year, <span class="dt">family =</span> <span class="kw">poisson</span>(<span class="dt">link =</span> <span class="st">&quot;log&quot;</span>), <span class="dt">data =</span> ev)</span>
