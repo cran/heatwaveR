@@ -4,6 +4,8 @@
 #' user-specified sliding window for the mean and threshold calculation, followed
 #' by an optional moving average smoother as used by Hobday et al. (2016).
 #'
+#' @import Rcpp
+#'
 #' @importFrom data.table %between%
 #' @useDynLib heatwaveR
 #'
@@ -177,7 +179,11 @@ ts2clm <- function(data,
     temp <- doy <- .SD <-  NULL
 
     ts_x <- eval(substitute(x), data)
+    if (is.null(ts_x) | is.function(ts_x))
+      stop("Please ensure that a column named 't' is present in your data.frame or that you have assigned a column to the 'x' argument.")
     ts_y <- eval(substitute(y), data)
+    if (is.null(ts_y) | is.function(ts_y))
+      stop("Please ensure that a column named 'temp' is present in your data.frame or that you have assigned a column to the 'y' argument.")
     rm(data)
 
     if (!inherits(ts_x[1], "Date"))
@@ -186,7 +192,7 @@ ts2clm <- function(data,
       stop("Please ensure the temperature values you are providing are type 'num' for numeric.")
 
     ts_xy <- data.table::data.table(ts_x = ts_x, ts_y = ts_y)[base::order(ts_x)]
-    rm(ts_x); rm(ts_y)
+    rm(list = c("ts_x", "ts_y"))
 
     ts_whole <- make_whole_fast(ts_xy)
 

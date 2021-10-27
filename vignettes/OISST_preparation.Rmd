@@ -20,7 +20,7 @@ knitr::opts_chunk$set(fig.width = 8, fig.height = 3, fig.align = 'centre',
 
 ## Overview
 
-In this vignette we will see how to retrieve and prepare Reynolds optimally interpolated sea surface temperature (OISST) data for calculating marine heatwaves (MHWs). The OISST product is a global 1/4 degree gridded dataset of Advanced Very High Resolution Radiometer (AVHRR) derived SSTs at a daily resolution, starting on 1 September 1981. The source of the data is currently the [NOAA NCDC](https://www.ncdc.noaa.gov/oisst). 
+In this vignette we will see how to retrieve and prepare Reynolds optimally interpolated sea surface temperature (OISST) data for calculating marine heatwaves (MHWs). The OISST product is a global 1/4 degree gridded dataset of Advanced Very High Resolution Radiometer (AVHRR) derived SSTs at a daily resolution, starting on 1 September 1981. The source of the data is currently the [NOAA NCDC](https://www.ncei.noaa.gov/products/optimum-interpolation-sst). 
 
 Each daily global file, when not compressed, is around 8.3 MB, so they add up to a large amount of data when a time series of the recommended 30 year minimum duration for the detection of MHWs is downloaded. If one were to download all of the data currently available it would exceed 100 GB of total disk space. It is therefore best practice to download only a subset of the data that matches one's study area. Thanks to the [__`rerddap`__ package](https://docs.ropensci.org/rerddap/) this is incredibly easy to do in `R`.
 
@@ -120,7 +120,7 @@ system.time(
     group_modify(~OISST_sub_dl(.x)) %>% 
     ungroup() %>% 
     select(lon, lat, t, temp)
-) # 636 seconds, ~127 seconds per batch
+) # 38 seconds, ~8 seconds per batch
 ```
 
 If the above code chunk is giving errors it is likely due to one's Internet connection timing out. There are also rare instances where the NOAA server is not responding due to an issue on their end. Any connection based issues may be resolved by simply waiting for a few minutes, or by ensuring a stable connection.

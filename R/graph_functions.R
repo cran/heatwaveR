@@ -227,9 +227,9 @@ event_line <- function(data,
 
     if (event_top$intensity_mean < 0) {
       fillColCat <- c(
-        "Moderate" = "#A4D4E0",
-        "Strong" = "#5B80A6",
-        "Severe" = "#2A3C66",
+        "Moderate" = "#C7ECF2",
+        "Strong" = "#85B7CC",
+        "Severe" = "#4A6A94",
         "Extreme" = "#111433"
       )
       ep <- ep +
@@ -358,15 +358,15 @@ lolli_plot <- function(data,
   if (!(exists("event", data)) | !(exists("climatology", data))) stop("Please ensure you are running this function on the output of 'heatwaveR::detect_event()'")
 
   if (!(metric %in% c("intensity_mean", "intensity_max", "intensity_cumulative", "duration"))) {
-    stop("Please ensure you have spelled the desired metric correctly.")
+    stop("Please ensure you have spelled the name of desired metric correctly.")
   }
 
   if (!(xaxis %in% c("event_no", "date_start", "date_peak"))) {
-    stop("Please ensure you have spelled the desired xaxis correctly.")
+    stop("Please ensure you have spelled the name of desired x-axis correctly.")
   }
 
   if (event_count > nrow(data$event)) {
-    stop("Please ensure that event_count is less than the total number of events in your results.")
+    stop("Please ensure that event_count is less or equal to than the total number of events in your results.")
   }
 
   event <- data$event %>%

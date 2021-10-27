@@ -1,3 +1,38 @@
+# heatwaveR 0.4.6 (2021-10-26)
+
+-   Updated SST time series to 2020-12-31 
+
+# heatwaveR 0.4.6 (2021-10-25)
+
+-   Explicitly loading **`Rcpp`** due to a change in the behaviour of the package causing ERRORs on CRAN checks
+
+# heatwaveR 0.4.5.9002 (2021-09-21)
+
+-   Updated the MCS colour palette throughout the package
+    - The new colour palette is very similar, but with improved contrast
+-   Made a minor but important change to `category()` so that categories are based on temperature greater (lesser) than the thresholds and not greater (lesser) than or equal to
+
+# heatwaveR 0.4.5.9001 (2021-08-25)
+
+-   Updated the visualisation vignette to now include the code necessary to get `geom_flame()` to work with **`plotly`** now that it is no longer directly supported
+
+# heatwaveR 0.4.5.9001 (2021-03-17)
+
+-   Improved error trapping for `ts2clm()`, `detect_event()`, and `exceedance()`
+
+# heatwaveR 0.4.5.9000 (2021-02-10)
+
+-   Added more citations of the package
+
+# heatwaveR 0.4.5.9000 (2021-01-31)
+
+-   Added a `categories` argument to `detect_event()`
+    -   This allows one to determine the categories of events directly, rather than as a second step using the `category()` function
+
+# heatwaveR 0.4.5 (2021-01-23)
+
+-   Created a new vignette that shows how to save gridded MHW results to a NetCDF file
+
 # heatwaveR 0.4.5 (2021-01-07)
 
 -   Pushed new major version to CRAN

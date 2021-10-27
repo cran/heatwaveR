@@ -94,7 +94,7 @@ test_that("roundRes argument functions correctly", {
   res <- detect_event(ts, roundRes = 0)
   expect_equal(res$event$intensity_max[1], 2)
   res <- detect_event(ts, roundRes = F)
-  expect_gt(res$event$rate_decline[1], 0.17824)
+  expect_gt(res$event$rate_decline[1], 0.1782399)
   expect_error(detect_event(ts, roundRes = "Banana"),
                "Please ensure that 'roundRes' is either a numeric value or FALSE.")
 })
@@ -108,4 +108,32 @@ test_that("only one event with NA for rate_onset or rate_decline returns NA and 
   expect_equal(res_decline$event$rate_decline, NA)
   expect_equal(res_both$event$rate_onset, NA)
   expect_equal(res_both$event$rate_decline, NA)
+})
+
+test_that("built in 'categories' argument works as expected", {
+  ts <- ts2clm(sst_WA, climatologyPeriod = c("1983-01-01", "2012-12-31"))
+  res_event <- detect_event(ts, categories = T)
+  res_list <- detect_event(ts, categories = T, climatology = T)
+  res_season <- detect_event(ts, categories = T, season = "peak")
+  expect_is(res_event, "data.frame")
+  expect_is(res_list, "list")
+  expect_equal(res_event$category[1], "I Moderate")
+  expect_equal(res_list$climatology$category[889], "I Moderate")
+  expect_equal(res_season$season[3], "Winter")
+})
+
+test_that("Useful error is returned when incorrect column names exist", {
+  ts <- ts2clm(sst_WA, climatologyPeriod = c("1983-01-01", "2012-12-31"))
+  colnames(ts) <- c("doy", "banana", "temp", "seas", "thresh")
+  expect_error(detect_event(ts),
+               "Please ensure that a column named 't' is present in your data.frame or that you have assigned a column to the 'x' argument.")
+  colnames(ts) <- c("doy", "t", "banana", "seas", "thresh")
+  expect_error(detect_event(ts),
+               "Please ensure that a column named 'temp' is present in your data.frame or that you have assigned a column to the 'y' argument.")
+  colnames(ts) <- c("doy", "t", "temp", "banana", "thresh")
+  expect_error(detect_event(ts),
+               "Please ensure that a column named 'seas' is present in your data.frame or that you have assigned a column to the 'seasClim' argument.")
+  colnames(ts) <- c("doy", "t", "temp", "seas", "banana")
+  expect_error(detect_event(ts),
+               "Please ensure that a column named 'thresh' is present in your data.frame or that you have assigned a column to the 'threshClim' argument.")
 })

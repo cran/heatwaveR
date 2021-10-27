@@ -98,21 +98,22 @@ MCS_clim_cat <- MCS$clim %>%
 # Set line colours
 lineColCat <- c(
   "Temperature" = "black",
-  "Climatology" = "gray20",
-  "Threshold" = "darkgreen",
-  "2x Threshold" = "darkgreen",
-  "3x Threshold" = "darkgreen",
-  "4x Threshold" = "darkgreen"
+  "Climatology" = "grey40",
+  "Threshold" = "darkorchid",
+  "2x Threshold" = "darkorchid",
+  "3x Threshold" = "darkorchid",
+  "4x Threshold" = "darkorchid"
   )
 
 # Set category fill colours
 fillColCat <- c(
-  "Moderate" = "#A4D4E0",
-  "Strong" = "#5B80A6",
-  "Severe" = "#2A3C66",
+  "Moderate" = "#C7ECF2",
+  "Strong" = "#85B7CC",
+  "Severe" = "#4A6A94",
   "Extreme" = "#111433"
   )
 
+# Create plot
 ggplot(data = MCS_clim_cat, aes(x = t, y = temp)) +
   geom_flame(aes(y = thresh, y2 = temp, fill = "Moderate")) +
   geom_flame(aes(y = thresh_2x, y2 = temp, fill = "Strong")) +
@@ -137,9 +138,9 @@ ggplot(data = MCS_clim_cat, aes(x = t, y = temp)) +
 ## ----comp-fig-----------------------------------------------------------------
 # The MCS colour palette
 MCS_colours <- c(
-  "Moderate" = "#A4D4E0",
-  "Strong" = "#5B80A6",
-  "Severe" = "#2A3C66",
+  "Moderate" = "#C7ECF2",
+  "Strong" = "#85B7CC",
+  "Severe" = "#4A6A94",
   "Extreme" = "#111433"
 )
 

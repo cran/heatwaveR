@@ -64,6 +64,9 @@ knitr::opts_chunk$set(fig.width = 4, fig.align = 'center',
 #  system.time(
 #  MHW_result <- plyr::ldply(OISST_files, .fun = dplyr_wraper, .parallel = T)
 #  ) # 31 seconds
+#  
+#  # Save for later use as desired
+#  saveRDS(MHW_result, "~/Desktop/MHW_result.Rds")
 
 ## ----event-tally--------------------------------------------------------------
 #  # summarise the number of unique longitude, latitude and year combination:

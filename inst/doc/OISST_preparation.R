@@ -61,7 +61,7 @@ knitr::opts_chunk$set(fig.width = 8, fig.height = 3, fig.align = 'centre',
 #      group_modify(~OISST_sub_dl(.x)) %>%
 #      ungroup() %>%
 #      select(lon, lat, t, temp)
-#  ) # 636 seconds, ~127 seconds per batch
+#  ) # 38 seconds, ~8 seconds per batch
 
 ## ----SA-visual----------------------------------------------------------------
 #  OISST_data %>%

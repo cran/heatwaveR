@@ -163,14 +163,12 @@ category <- function(data,
                                               p_strong = NA,
                                               p_severe = NA,
                                               p_extreme = NA,
-                                              season = NA)) #%>%
-        # stats::na.omit()
+                                              season = NA))
       if (climatology) {
         clim_res <- tibble::as_tibble(data.frame(t = NA,
                                                  event_no = NA,
                                                  intensity = NA,
-                                                 category = NA)) #%>%
-          # stats::na.omit()
+                                                 category = NA))
         res <- list(climatology = clim_res,
                     event = cat_res)
         return(res)
@@ -277,19 +275,19 @@ category <- function(data,
     }
 
     moderate_n <- clim_diff %>%
-      dplyr::filter(ts_y >= thresh) %>%
+      dplyr::filter(ts_y > thresh) %>%
       dplyr::group_by(event_no) %>%
       dplyr::summarise(moderate = dplyr::n(), .groups = "drop")
     strong_n <- clim_diff %>%
-      dplyr::filter(ts_y >= thresh_2x) %>%
+      dplyr::filter(ts_y > thresh_2x) %>%
       dplyr::group_by(event_no) %>%
       dplyr::summarise(strong = dplyr::n(), .groups = "drop")
     severe_n <- clim_diff %>%
-      dplyr::filter(ts_y >= thresh_3x) %>%
+      dplyr::filter(ts_y > thresh_3x) %>%
       dplyr::group_by(event_no) %>%
       dplyr::summarise(severe = dplyr::n(), .groups = "drop")
     extreme_n <- clim_diff %>%
-      dplyr::filter(ts_y >= thresh_4x) %>%
+      dplyr::filter(ts_y > thresh_4x) %>%
       dplyr::group_by(event_no) %>%
       dplyr::summarise(extreme = dplyr::n(), .groups = "drop")
     cat_n <- dplyr::left_join(moderate_n, strong_n, by = "event_no") %>%
@@ -330,9 +328,9 @@ category <- function(data,
       doy <- intensity <- NULL
 
       clim_res <- clim_diff %>%
-        dplyr::mutate(category = ifelse(ts_y >= thresh_4x, "IV Extreme",
-                                        ifelse(ts_y >= thresh_3x, "III Severe",
-                                               ifelse(ts_y >= thresh_2x, "II Strong",
+        dplyr::mutate(category = ifelse(ts_y > thresh_4x, "IV Extreme",
+                                        ifelse(ts_y > thresh_3x, "III Severe",
+                                               ifelse(ts_y > thresh_2x, "II Strong",
                                                       ifelse(ts_y > thresh, "I Moderate", NA)))),
                       intensity = round(ts_y-seas, roundVal)) %>%
         dplyr::select(t, event_no, intensity, category)
