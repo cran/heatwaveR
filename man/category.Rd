@@ -10,9 +10,11 @@ category(
   S = TRUE,
   name = "Event",
   climatology = FALSE,
-  MCScorrect = F,
+  MCScorrect = FALSE,
+  MCSice = FALSE,
   season = "range",
-  roundVal = 4
+  roundVal = 4,
+  lat_col = FALSE
 )
 }
 \arguments{
@@ -32,16 +34,19 @@ If no value is provided the default output is "Event".}
 
 \item{climatology}{The default setting of \code{FALSE} will tell this function to output only
 the summary (wide) results for the individual events as seen in Hobday et al. (2018). If set
-to \code{TRUE}, this function will return a list of two dataframes, same
-as \code{\link{detect_event}}. The first dataframe \code{climatology}, contains the same
-information as found in \code{\link{detect_event}}, but with the addition of the daily
-intensity (anomaly above seasonal doy threshold) and category values. The second dataframe,
+to \code{TRUE}, this function will return a list of two dataframes.
+The first dataframe \code{climatology}, contains similar information as found in
+\code{\link{detect_event}}, with the addition of the daily intensity (anomaly above seasonal doy threshold)
+and category values, but only reports the days on which an event was detected. The second dataframe,
 \code{event}, is the summary results that this function produces by default.}
 
 \item{MCScorrect}{When calculating marine cold-spells (MCSs) it may occur in some areas
 that the bottom thresholds for the more intense categories will be below -1.8C,
 this is physically impossible on Earth, so if one wants to correct the bottom thresholds
 to not be able to exceed -1.8C, set this argument to TRUE (default is FALSE).}
+
+\item{MCSice}{Sensu Schlegel et al. (2021; Marine cold-spells), it is advisable to classify
+a MCS with an event threshold below -1.7°C as a 'V Ice' category event.}
 
 \item{season}{This argument allows the user to decide how the season(s) of occurrence for
 the MHWs are labelled. The default setting of \code{"range"} will return the range of seasons
@@ -53,9 +58,18 @@ the corresponding character vector.}
 the outputs will be rounded to. Default is 4. To
 prevent rounding set \code{roundClm = FALSE}. This argument may only be given
 numeric values or FALSE.}
+
+\item{lat_col}{The user may set \code{lat_col = TRUE} to detect columns named first 'lat',
+then 'latitude', and use the numeric decimal degree values therein to determine the correct
+seasons for events. Note that this will override the \code{S} argument. Meaning that if the
+given/detected latitude column has negative values, \code{S} will automatically be set to
+\code{TRUE} and vice versa. Also note that if multiple different latitude values are detected
+this will intentionally cause an error because the \code{category()} function is not meant to be run on more
+than one time series at once. If latitude is exactly 0, it will be classified as
+Northern Hemisphere.}
 }
 \value{
-The function will return a tibble with results similar to those seen in
+The function will return a data.frame with results similar to those seen in
 Table 2 of Hobday et al. (2018). This provides the information necessary to
 appraise the extent of the events in the output of \code{\link{detect_event}} based on the
 category ranking scale. The category thresholds are calculated based on the difference
@@ -63,11 +77,17 @@ between the given seasonal climatology and threshold climatology. The four categ
 are then the difference multiplied by the category level.
 
 The definitions for the default output columns are as follows:
+\describe{
+  \item{t}{The column containing the daily date values.}
+  \item{event_no}{The numeric event number label.}
+  \item{intensity}{The daily exceedance (default is degrees C) above the
+  seasonal climatology.}
+  \item{category}{The category classification per day.}
   \item{event_no}{The number of the event as determined by \code{\link{detect_event}}
   to allow for joining between the outputs.}
-  \item{event_name}{The name of the event. Generated from the \code{\link{name}}
+  \item{event_name}{The name of the event. Generated from the \code{name}
   value provided and the year of the \code{peak_date} (see following) of
-  the event. If no \code{\link{name}} value is provided the default "Event" is used.
+  the event. If no \code{name} value is provided the default "Event" is used.
   As proposed in Hobday et al. (2018), \code{Moderate} events are not given a name
   so as to prevent multiple repeat names within the same year. If two or more events
   ranked greater than Moderate are reported within the same year, they will be
@@ -78,7 +98,7 @@ The definitions for the default output columns are as follows:
   \item{category}{The maximum category threshold reached/exceeded by the event.}
   \item{i_max}{The maximum intensity of the event above the threshold value.}
   \item{duration}{The total duration (days) of the event. Note that this includes
-  any possible days when the measurement value \code{\link{y}}) may have dropped below the
+  any possible days when the measurement value \code{y} may have dropped below the
   threshold value. Therefore, the proportion of the event duration (days) spent above
   certain thresholds may not add up to 100\% (see following four items).}
   \item{p_moderate}{The proportion of the total duration (days) spent at or above
@@ -95,14 +115,17 @@ The definitions for the default output columns are as follows:
   seasons are listed as "Year-round". December (June) is used here as the start of
   Austral (Boreal) summer. If "start", "peak", or "end" was given to the \code{season}
   argument then only the one season during that chosen period will be given.}
+  }
 
 If \code{climatology = TRUE}, this function will output a list of two dataframes.
 The first dataframe, \code{climatology}, will contain the following columns:
+\describe{
   \item{t}{The column containing the daily date values.}
   \item{event_no}{The numeric event number label.}
   \item{intensity}{The daily exceedance (default is degrees C) above the
   seasonal climatology.}
   \item{category}{The category classification per day.}
+  }
 
 The second dataframe, \code{event}, contains the default output of this function,
 as detailed above.
@@ -113,14 +136,15 @@ accordance with the naming scheme proposed in Hobday et al. (2018).
 }
 \details{
 An explanation for the categories is as follows:
-\enumerate{
+\describe{
   \item{I Moderate-}{Events that have been detected, but with a maximum intensity that does not
   double the distance between the seasonal climatology and the threshold value.}
   \item{II Strong-}{Events with a maximum intensity that doubles the distance from the seasonal
   climatology and the threshold, but do not triple it.}
   \item{III Severe-}{Events that triple the aforementioned distance, but do not quadruple it.}
   \item{IV Extreme-}{Events with a maximum intensity that is four times or greater than the
-  aforementioned distance. Scary stuff...}
+  aforementioned distance.}
+  \item{V Ice-}{If \code{MCSice = TRUE}, a MCS with an event threshold below -1.7°C will be classified here.}
   }
 }
 \examples{
@@ -142,20 +166,13 @@ tail(cat_Med)
 cat_WA_daily <- category(res_WA, name = "WA", climatology = TRUE)
 head(cat_WA_daily$climatology)
 
-# Note that this will not return the complete time series, only the
-# days during which events were detected.
-# This was done to reduce the size of the output for those working
-# with gridded data.
-# Should one want a complete time series, the daily category results
-# may simply be left_join() with the detect_event() results
-cat_WA_ts <- dplyr::left_join(res_WA$climatology,
-                              cat_WA_daily$climatology)
-head(cat_WA_ts)
-
 }
 \references{
 Hobday et al. (2018). Categorizing and Naming
 Marine Heatwaves. Oceanography 31(2).
+
+Schlegel et al. (2021). Marine cold-spells.
+Progress in Oceanography 198(102684).
 }
 \author{
 Robert W. Schlegel

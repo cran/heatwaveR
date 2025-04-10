@@ -1,12 +1,20 @@
 context("Test exceedance.R")
 
-test_that("exceedance() returns the correct lists, tibbles, and columns", {
-  res <- exceedance(data = sst_Med, threshold = 20)
-  expect_is(res, "list")
-  expect_is(res$threshold, "tbl_df")
-  expect_is(res$exceedance, "tbl_df")
-  expect_equal(ncol(res$threshold), 7)
-  expect_equal(ncol(res$exceedance), 18)
+test_that("exceedance() returns the correct lists, data.frames, data.tables, and columns", {
+  res1 <- exceedance(data = sst_Med, threshold = 20)
+  expect_is(res1, "list")
+  expect_s3_class(res1$threshold, "data.frame")
+  expect_s3_class(res1$exceedance, "data.frame")
+  expect_false(S3Class(res1$threshold) == "data.table")
+  expect_false(S3Class(res1$exceedance) == "data.table")
+  expect_equal(ncol(res1$threshold), 7)
+  expect_equal(ncol(res1$exceedance), 18)
+  res2 <- exceedance(data = sst_Med, threshold = 20, returnDF = FALSE)
+  expect_is(res2, "list")
+  expect_s3_class(res2$threshold, "data.table")
+  expect_s3_class(res2$exceedance, "data.table")
+  expect_equal(ncol(res1$threshold), 7)
+  expect_equal(ncol(res1$exceedance), 18)
 })
 
 test_that("threshold may not be missing", {
@@ -19,10 +27,10 @@ test_that("no exceedances returns a 1 row NA exceedance dataframe and not an err
   res_low <- exceedance(data = sst_Med, threshold = 10, below = T)
   expect_is(res_high, "list")
   expect_is(res_low, "list")
-  expect_is(res_high$threshold, "tbl_df")
-  expect_is(res_low$threshold, "tbl_df")
-  expect_is(res_high$exceedance, "tbl_df")
-  expect_is(res_low$exceedance, "tbl_df")
+  expect_is(res_high$threshold, "data.frame")
+  expect_is(res_low$threshold, "data.frame")
+  expect_is(res_high$exceedance, "data.frame")
+  expect_is(res_low$exceedance, "data.frame")
   expect_equal(ncol(res_high$threshold), 7)
   expect_equal(ncol(res_low$threshold), 7)
   expect_equal(ncol(res_high$exceedance), 18)
@@ -68,8 +76,8 @@ test_that("maxPadLength argument works correctly throughout", {
                "Please ensure that 'maxPadLength' is either FALSE or a numeric/integer value.")
   expect_error(exceedance(data = sst_Med, threshold = 20, maxPadLength = TRUE),
                "Please ensure that 'maxPadLength' is either FALSE or a numeric/integer value.")
-  sst_Med_NA <- sst_Med[c(1:20,22:1200),]
-  res <- exceedance(data = sst_Med_NA, threshold = 20, maxPadLength = 2)
+  sst_Med_miss <- sst_Med[c(1:20,22:1200),]
+  res <- exceedance(data = sst_Med_miss, threshold = 20, maxPadLength = 2)
   expect_equal(round(res$threshold$temp[21], 2), 13.57)
 })
 
@@ -81,4 +89,48 @@ test_that("Useful error is returned when incorrect column names exist", {
   colnames(ts) <- c("t", "banana")
   expect_error(exceedance(ts, threshold = 20),
                "Please ensure that a column named 'temp' is present in your data.frame or that you have assigned a column to the 'y' argument.")
+})
+
+test_that("Extra columns are passed forward correctly", {
+  ts <- sst_WA
+  ts$banana <- 1
+  ts$mango <- 2
+  ts <- ts[, c(3, 4, 1, 2)]
+  res1 <- exceedance(data = ts, threshold = 20, maxPadLength = 2)
+  res1_thresh <- res1$threshold
+  ts_miss1 <- ts[c(1:20, 22:1200),]
+  res2 <- exceedance(data = ts_miss1, threshold = 20, maxPadLength = 2)
+  res2_thresh <- res2$threshold
+  ts_miss2 <- ts_miss1[, c(1, 3, 2, 4)]
+  res3 <- exceedance(data = ts_miss2, threshold = 20, maxPadLength = 2)
+  res3_thresh <- res3$threshold
+  ts_miss3 <- ts; ts_miss3$temp[21] <- NA
+  res4 <- exceedance(data = ts_miss3, threshold = 20, maxPadLength = 2)
+  res4_thresh <- res4$threshold
+  expect_equal(ncol(res1$threshold), 9)
+  expect_is(res2$threshold, "data.frame")
+  expect_is(res3$threshold, "data.frame")
+  expect_equal(nrow(res2$threshold), 1200)
+  expect_true(is.na(res3$threshold[21,3]))
+  expect_equal(res4$threshold[21,1], 1)
+})
+
+test_that("hourly functions are acknowledged and used", {
+  Sys.setenv(TZ = "UTC")
+  ts_Med <- sst_Med[1:3652,]
+  ts_hours <- expand.grid(ts_Med$t, seq(1:24)-1)
+  colnames(ts_hours) <- c("t", "hour")
+  ts_hours$hourly <- fasttime::fastPOSIXct(paste0(ts_hours$t," ",ts_hours$hour,":00:00"))
+  ts_Med_hourly <- merge(ts_hours, ts_Med)
+  ts_Med_hourly$temp <- ts_Med_hourly$temp + runif(n = nrow(ts_Med_hourly), min = 0.01, max = 0.1)
+  ts_Med_hourly <- ts_Med_hourly[,c("hourly", "temp")]
+  colnames(ts_Med_hourly) <- c("t", "temp")
+  ts_Med_hourly <- ts_Med_hourly[order(ts_Med_hourly$t),]
+  res <- exceedance(data = ts_Med_hourly, threshold = 20, minDuration = 5*24, maxGap = 2*24)
+  expect_is(res$exceedance, "data.frame")
+  expect_equal(ncol(res$exceedance), 18)
+  expect_equal(nrow(res$exceedance), 15)
+  ts_Med_nonhourly <- ts_Med_hourly
+  ts_Med_nonhourly$t[1] <- ts_Med_nonhourly$t[1]+61
+  expect_error(exceedance(ts_Med_nonhourly, threshold = 20))
 })

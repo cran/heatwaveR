@@ -1,6 +1,178 @@
+# heatwaveR 0.5.4 (2025-04-10)
+
+- A lot of small fiddly tweaks to meet new CRAN documentation standards
+- Added the scientific citations of the package for 2023 and 2024
+
+# heatwaveR 0.5.3.9005 (2025-01-12)
+
+- Minor tweak to `event_line()` to keep up with changes to __`ggplot2`__
+
+# heatwaveR 0.5.3.9004 (2024-09-25)
+
+- Updated OISST vignette to account for changes in the behaviour of __`tidync`__ functions
+
+# heatwaveR 0.5.3.9003 (2024-08-30)
+
+- Minor tweak to `event_line()` to match new __`ggplot2`__ syntax
+
+# heatwaveR 0.5.3.9002 (2024-07-07)
+
+- Changed moderate category calculation from '>' to '>='
+
+# heatwaveR 0.5.3.9001 (2024-04-22)
+
+- Addressing bugs in the calculation of hourly values not ending on even hour steps
+
+# heatwaveR 0.5.3.9000 (2024-04-09)
+
+- Updated URL for MHW tutorial
+
+# heatwaveR 0.5.3.9000 (2024-03-27)
+
+- Basic hourly functionality added to `ts2clm()`
+- Tests added for `detect_event()`
+- Minor tweak to `exceedance()` to work with hourly data
+
+# heatwaveR 0.5.2.9009 (2024-01-23)
+
+- More tweaks to return behaviour of `exceedance()`
+
+# heatwaveR 0.5.2.9008 (2024-01-22)
+
+-  Corrected return behaviour of `exceedance()` to keep backwards compatibility
+
+# heatwaveR 0.5.2.9007 (2024-01-20)
+
+-  Fixed a bug in `proto_event()` when an event lasts for the entire time series
+-  `exceedance()` now correctly returns extra columns in the original data.frame
+-  Corrected rare edge case in `detect_event()` and `exceedance()` where if a single MCS was detected the returned threshold columns would be negative values
+
+# heatwaveR 0.5.2.9006 (2023-12-11)
+
+-  Updated NOAA OISST vignette to account for a change they made to the data query process
+
+# heatwaveR 0.5.2.9006 (2023-12-05)
+
+-  Removed cpp function `seqDates()` from package
+
+# heatwaveR 0.5.2.9005 (2023-11-11)
+
+-  Removed `category` functionality from `detect_event3()` to keep it more streamlined
+
+# heatwaveR 0.5.2.9004 (2023-11-06)
+
+-   Minor tweaks to new functions and CodeCov testing implemented
+
+# heatwaveR 0.5.2.9003 (2023-11-05)
+
+-   Created `detect_event3()` and `proto_event3()` with a new code base to benefit
+    from the speed gains due to data.table internals
+-   Output results (climatologies and metrics) as data.table
+-   Updated and improved documentation
+
+# heatwaveR 0.5.2.9002 (2023-10-31)
+
+-   Rolled back overwrite of `ts2clm()` with `ts2clm3()` for now
+-   Set default behaviour of `detect_event()` to return a data.frame, rather than a data.table
+-   A new argument was introduced for most top level functions: `returnDF` with the default behaviour of `TRUE`
+  -   This explicitly ensures that the functions return data.frames
+  -   If `returnDF == FALSE` the functions will return data.tables
+-   Removed __`plyr`__ and __`grid`__ dependencies from package
+-   Added the package development script to the root directory
+
+# heatwaveR 0.5.2.9001 (2023-10-30)
+
+-   Removed `robust` argument from `ts2clm()` that was deprecated years ago
+-   Replaced `ts2clm()` with `ts2clm3()` throughout package
+-   Removed __`tibble`__ dependency
+
+# heatwaveR 0.5.2.9000 (2023-10-29)
+
+-   Fully data.table compliant `ts2clm3()`, a drop-in replacement for `ts2clm()`
+-   `make_whole_fast()`, `na_interp()`, `clim_spread()`, and `smooth_percentile()` included within the main function
+-   Significantly faster climatology calculation
+-   Correct error with climatological variance calculation
+
+# heatwaveR 0.5.1.9000 (2023-10-25)
+
+-   Removing dependencies and speeding up code
+-   Removed __`lubridate`__ and __`dplyr`__ dependencies
+
+# heatwaveR 0.5.0.9003 (2023-08-31)
+
+-   Added links to __`heatwave3`__ package on home page and gridded detection vignette.
+
+# heatwaveR 0.5.0.9003 (2023-07-31)
+
+-   Addressed CodeCov and created stable version for CRAN
+
+# heatwaveR 0.5.0.9003 (2023-07-25)
+
+-   Changed behaviour of `category()` to address edge case in polar MCS
+-   Corrected bug in `category()` that did not change the 'V Ice' category in the climatology output
+-   Also a bug that didn't return all of a users columns that are not part of the normal `category()` output
+-   And a bug that allowed users to unintentionally assign 'V Ice' category to MHWs
+
+# heatwaveR 0.5.0.9002 (2023-05-02)
+
+-   Addressed extreme edge case in `category()` when no Moderate I MCS are detected, just higher categories
+
+# heatwaveR 0.5.0.9001 (2023-04-17)
+
+-   Improvements to main pipeline to ensure `lat` column is passed forward for correct category seasons 
+
+# heatwaveR 0.5.0.9000 (2023-03-30)
+
+-   Bug hunting in the build-up to v1.0.0
+-   Addressed issue of y column not passing through correctly from `detect_event()` to `category()` when called internally
+-   Changed documentation for `category()` to more accurately match the output of `climatology = TRUE`
+-   Looked into behaviour of `protoEvents` in `detect_event()`
+-   Added `lat_col` argument to `category()` to detect if time series are in N or S hemisphere
+
+# heatwaveR 0.5.0 (2023-03-20)
+
+-   Major update in preparation of removing all dependencies and releasing v1.0.0
+-   Also necessary due to cryptic CRAN error
+
+# heatwaveR 0.4.6.9004 (2023-03-13)
+
+-   Removed all dependencies from `event_line()` and `block_average()` except **`plyr`**
+-   Added `line_colours` argument to `event_line()`, allowing users to choose colours of line geoms
+
+# heatwaveR 0.4.6.9004 (2023-03-11)
+
+-   Removed all dependencies from `category()` and `exceedance()` except for **`plyr`**
+
+# heatwaveR 0.4.6.9004 (2023-03-07)
+
+-   Starting to remove as many dependencies as possible
+-   Started by removing all but `**plyr**` dependency from `proto_event()` and `detect_event()`
+
+# heatwaveR 0.4.6.9003 (2023-01-16)
+
+-   Updated SST data to end of 2022
+-   Changed behaviour of `lolli_plot()` and `event_line()` to now use tidyeval
+  -   Note that this is a backwards compatibility breaking change that was required due to changes in **`ggplot2 v3.0.0`**
+
+# heatwaveR 0.4.6.9002 (2023-01-09)
+
+-   Updated citations page for all references to `heatwaveR` from 2022
+-   Added package names to all functions used in the downloading OISST vignette
+-   Added the `MCSice` argument to `category()`, which allows users to directly classify a MCS with a threshold below -1.7°C as a category 'V Ice' event _sensu_ Schlegel et al. (2021; Marine cold-spells)
+
+# heatwaveR 0.4.6.9001 (2022-06-23)
+
+-   Added two new vignettes 
+    - Alternatives to downloading NOAA OISST data
+    - Trend and break point analyses for MHW metrics
+
+# heatwaveR 0.4.6.9000 (2022-01-17)
+
+-   Updated SST time series to 2021-12-31
+
 # heatwaveR 0.4.6 (2021-10-26)
 
--   Updated SST time series to 2020-12-31 
+-   Updated SST time series to 2020-12-31
 
 # heatwaveR 0.4.6 (2021-10-25)
 

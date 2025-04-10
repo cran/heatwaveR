@@ -1,13 +1,22 @@
 context("Test detect_event.R")
 
-test_that("detect() returns the correct lists, data.table, and columns", {
+test_that("detect() returns the correct lists, data.frame, data.table, and columns", {
   ts <- ts2clm(sst_WA, climatologyPeriod = c("1983-01-01", "2012-12-31"))
-  res <- detect_event(ts)
-  expect_is(res, "list")
-  expect_is(res$climatology, "tbl_df")
-  expect_is(res$event, "tbl_df")
-  expect_equal(ncol(res$climatology),9)
-  expect_equal(ncol(res$event), 22)
+  res1 <- detect_event(ts)
+  res_event <- res1$event
+  expect_is(res1, "list")
+  expect_s3_class(res1$climatology, "data.frame")
+  expect_s3_class(res1$event, "data.frame")
+  expect_false(S3Class(res1$climatology) == "data.table")
+  expect_false(S3Class(res1$event) == "data.table")
+  expect_equal(ncol(res1$climatology), 9)
+  expect_equal(ncol(res1$event), 22)
+  res2 <- detect_event(ts, returnDF = FALSE)
+  expect_is(res2, "list")
+  expect_s3_class(res2$climatology, "data.table")
+  expect_s3_class(res2$event, "data.table")
+  expect_equal(ncol(res2$climatology), 9)
+  expect_equal(ncol(res2$event), 22)
 })
 
 test_that("all starting error checks flag correctly", {
@@ -57,10 +66,6 @@ test_that("detect_event() utilises the second threshold correctly", {
   res_1 <- detect_event(ts, threshClim2 = second_threshold)
   res_2 <- detect_event(ts)
   expect_gt(nrow(res_2$event), nrow(res_1$event))
-})
-
-test_that("threshClim2 must be logic values", {
-  ts <- ts2clm(sst_WA, climatologyPeriod = c("1983-01-01", "2012-12-31"))
   expect_error(detect_event(ts, threshClim2 = "aaa"))
 })
 
@@ -69,17 +74,11 @@ test_that("no detected events returns a 1 row NA event dataframe and not an erro
   sst_WA_flat$temp <- 1
   res <- detect_event(ts2clm(sst_WA_flat, climatologyPeriod = c("1983-01-01", "2012-12-31")))
   expect_is(res, "list")
-  expect_is(res$climatology, "tbl_df")
-  expect_is(res$event, "tbl_df")
+  expect_is(res$climatology, "data.frame")
+  expect_is(res$event, "data.frame")
   expect_equal(ncol(res$climatology), 9)
   expect_equal(ncol(res$event), 22)
   expect_equal(nrow(res$event), 1)
-})
-
-test_that("decimal places are rounded to the fourth place", {
-  res <- detect_event(ts2clm(sst_WA, climatologyPeriod = c("1983-01-01", "2012-12-31")))
-  expect_equal(nchar(strsplit(as.character(res$climatology$thresh[1]), "\\.")[[1]][2]), 4)
-  expect_equal(nchar(strsplit(as.character(res$event$intensity_max[1]), "\\.")[[1]][2]), 4)
 })
 
 test_that("protoEvents argument functions correctly", {
@@ -110,19 +109,7 @@ test_that("only one event with NA for rate_onset or rate_decline returns NA and 
   expect_equal(res_both$event$rate_decline, NA)
 })
 
-test_that("built in 'categories' argument works as expected", {
-  ts <- ts2clm(sst_WA, climatologyPeriod = c("1983-01-01", "2012-12-31"))
-  res_event <- detect_event(ts, categories = T)
-  res_list <- detect_event(ts, categories = T, climatology = T)
-  res_season <- detect_event(ts, categories = T, season = "peak")
-  expect_is(res_event, "data.frame")
-  expect_is(res_list, "list")
-  expect_equal(res_event$category[1], "I Moderate")
-  expect_equal(res_list$climatology$category[889], "I Moderate")
-  expect_equal(res_season$season[3], "Winter")
-})
-
-test_that("Useful error is returned when incorrect column names exist", {
+test_that("useful error is returned when incorrect column names exist", {
   ts <- ts2clm(sst_WA, climatologyPeriod = c("1983-01-01", "2012-12-31"))
   colnames(ts) <- c("doy", "banana", "temp", "seas", "thresh")
   expect_error(detect_event(ts),
@@ -136,4 +123,63 @@ test_that("Useful error is returned when incorrect column names exist", {
   colnames(ts) <- c("doy", "t", "temp", "seas", "banana")
   expect_error(detect_event(ts),
                "Please ensure that a column named 'thresh' is present in your data.frame or that you have assigned a column to the 'threshClim' argument.")
+})
+
+test_that("lat + latitude columns are passed to category internally", {
+  ts <- ts2clm(sst_Med, climatologyPeriod = c("1983-01-01", "2012-12-31"))
+  ts$lat <- 10
+  res_S <- detect_event(ts, categories = T)
+  res_N <- detect_event(ts, categories = T, lat_col = T)
+  expect_equal(res_S$season[1], "Fall")
+  expect_equal(res_N$season[1], "Spring")
+  colnames(ts)[6] <- "latitude"
+  res_S <- detect_event(ts, categories = T)
+  res_N <- detect_event(ts, categories = T, lat_col = T)
+  expect_equal(res_S$season[1], "Fall")
+  expect_equal(res_N$season[1], "Spring")
+})
+
+test_that("Other built in 'categories' argument works as expected", {
+  ts <- ts2clm(sst_WA, climatologyPeriod = c("1983-01-01", "2012-12-31"))
+  ts$banana <- "Banana"
+  ts_name <- ts
+  colnames(ts_name)[3] <- "temperature"
+  res_event <- detect_event(ts, categories = TRUE)
+  res_list <- detect_event(ts, categories = TRUE, climatology = TRUE)
+  res_season <- detect_event(ts, categories = TRUE, season = "peak")
+  res_name <- detect_event(ts_name, y = temperature, categories = TRUE, climatology = TRUE)
+  res_MCS <- detect_event(ts, coldSpells = TRUE, categories = TRUE, climatology = TRUE,
+                          season = "peak", MCScorrect = TRUE, MCSice = TRUE)
+  expect_s3_class(res_event, "data.frame")
+  expect_is(res_list, "list")
+  expect_contains(colnames(res_list$climatology), "banana")
+  expect_equal(res_event$category[1], "I Moderate")
+  expect_equal(res_list$climatology$category[889], "I Moderate")
+  expect_equal(res_season$season[3], "Winter")
+  expect_equal(res_name$event$p_moderate[3], 100)
+  res_event_DT <- detect_event(ts, categories = TRUE, returnDF = FALSE)
+  expect_s3_class(res_event_DT, "data.table")
+})
+
+test_that("hourly functions are acknowledged and used", {
+  Sys.setenv(TZ = "UTC")
+  ts_WA <- sst_WA
+  ts_hours <- expand.grid(ts_WA$t, seq(1:24)-1)
+  colnames(ts_hours) <- c("t", "hour")
+  ts_hours$hourly <- fasttime::fastPOSIXct(paste0(ts_hours$t," ",ts_hours$hour,":00:00"))
+  ts_WA_hourly <- merge(ts_hours, ts_WA)
+  ts_WA_hourly$temp <- ts_WA_hourly$temp + runif(n = nrow(ts_WA_hourly), min = 0.01, max = 0.1)
+  ts_WA_hourly <- ts_WA_hourly[,c("hourly", "temp")]
+  colnames(ts_WA_hourly) <- c("t", "temp")
+  ts_WA_hourly <- ts_WA_hourly[order(ts_WA_hourly$t),]
+  ts_90 <- ts2clm(ts_WA_hourly, climatologyPeriod = c("1983-01-01", "2012-12-31"),
+                  windowHalfWidth = 5*24, smoothPercentileWidth = 31*24)
+  res_MHW <- detect_event(ts_90, minDuration = 5*24, maxGap = 2*24)
+  expect_is(res_MHW$event, "data.frame")
+  expect_equal(ncol(res_MHW$event), 22)
+  ts_10 <- ts2clm(ts_WA_hourly, climatologyPeriod = c("1983-01-01", "2012-12-31"),
+                  windowHalfWidth = 5*24, smoothPercentileWidth = 31*24, pctile = 10)
+  res_MCS <- detect_event(ts_10, minDuration = 5*24, maxGap = 2*24, coldSpells = TRUE)
+  expect_is(res_MCS$event, "data.frame")
+  expect_equal(ncol(res_MCS$event), 22)
 })

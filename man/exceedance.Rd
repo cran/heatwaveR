@@ -2,7 +2,7 @@
 % Please edit documentation in R/exceedance.R
 \name{exceedance}
 \alias{exceedance}
-\title{Detect consecutive days in exceedance of a given threshold.}
+\title{Detect consecutive days in exceedance above or below of a given threshold.}
 \usage{
 exceedance(
   data,
@@ -13,7 +13,9 @@ exceedance(
   minDuration = 5,
   joinAcrossGaps = TRUE,
   maxGap = 2,
-  maxPadLength = FALSE
+  maxPadLength = FALSE,
+  roundRes = 4,
+  returnDF = TRUE
 )
 }
 \arguments{
@@ -24,13 +26,15 @@ dates. If columns are named differently, their names can be supplied as \code{x}
 and \code{y} (see below). The function will not accurately detect consecutive
 days of temperatures in exceedance of the \code{threshold} if missing days of
 data are not filled in with \code{NA}. Data of the appropriate format are created
-by the function \code{\link{make_whole}}, but your own data may be used
-directly if they meet the given criteria.}
+by the internal function \code{\link{make_whole_fast}}, but your own data may be used
+directly if they meet the given criteria. Note that it is also possible to provide hourly
+data in the \code{x} column as class \code{POSIXct}.}
 
 \item{x}{This column is expected to contain a vector of dates as per the
-specification of \code{make_whole}. If a column headed \code{t} is present in
+specification of \code{make_whole_fast}. If a column headed \code{t} is present in
 the dataframe, this argument may be omitted; otherwise, specify the name of
-the column with dates here.}
+the column with dates here. Note that it is also possible to provide hourly
+data as class \code{POSIXct}.}
 
 \item{y}{This is a column containing the measurement variable. If the column
 name differs from the default (i.e. \code{temp}), specify the name here.}
@@ -58,10 +62,19 @@ consecutive days in exceedance of the \code{threshold} when
 interpolate (pad) missing data (specified as \code{NA}) in the input
 temperature time series; i.e., any consecutive blocks of NAs with length
 greater than \code{maxPadLength} will be left as \code{NA}. Set as an
-integer. The default is \code{3} days.}
+integer. The default is \code{3} days. Note this will be units of hours if
+hourly data were provided.}
+
+\item{roundRes}{This argument allows the user to choose how many decimal places
+the exceedance metric outputs will be rounded to. Default is 4. To
+prevent rounding set \code{roundRes = FALSE}. This argument may only be given
+numeric values or FALSE.}
+
+\item{returnDF}{The default (\code{TRUE}) tells the function to return the results as
+type \code{data.frame}. \code{FALSE} will return the results as a \code{data.table}.}
 }
 \value{
-The function will return a list of two tibbles (see the \code{tidyverse}).
+The function will return a list of two data.frames.
 The first being \code{threshold}, which shows the daily temperatures and on which
 specific days the given \code{threshold} was exceeded. The second component of the
 list is \code{exceedance}, which shows a medley of statistics for each discrete
@@ -111,16 +124,16 @@ and \code{intensity_cum_abs} are as above except as absolute magnitudes rather
 than relative to the threshold.
 }
 \description{
-Detect consecutive days in exceedance of a given threshold.
+Detect consecutive days in exceedance above or below of a given threshold.
 }
 \details{
 \enumerate{
 \item This function assumes that the input time series consists of continuous
 daily temperatures, with few missing values. The accompanying function
-\code{\link{make_whole}} aids in the preparation of a time series that is
+\code{\link{make_whole_fast}} aids in the preparation of a time series that is
 suitable for use with \code{exceedance}, although this may also be accomplished
 'by hand' as long as the criteria are met as discussed in the documentation
-to \code{\link{make_whole}}.
+to \code{\link{make_whole_fast}}.
 \item Future versions seek to accommodate monthly and annual time series, too.
 \item The calculation of onset and decline rates assumes that exceedance of the
 \code{threshold} started a half-day before the start day and ended a half-day

@@ -2,7 +2,7 @@
 % Please edit documentation in R/clim_spread.R
 \name{clim_spread}
 \alias{clim_spread}
-\title{Spead a time series wide to allow for a climatology to be calculated.}
+\title{Spread a time series wide to allow for a climatology to be calculated.}
 \usage{
 clim_spread(data, clim_start, clim_end, windowHalfWidth)
 }
@@ -27,5 +27,6 @@ then be used by \code{\link{clim_calc}} within \code{\link{ts2clm}}
 to produce a climatology as desired by the user.
 }
 \author{
-Smit, A. J.
+Smit, A. J., Villeneuve, A., Schlegel, R. W.
 }
+\keyword{internal}

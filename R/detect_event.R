@@ -17,11 +17,13 @@
 #' format are created by the function \code{\link{ts2clm}}, but your own data
 #' can be supplied if they meet the criteria specified by \code{\link{ts2clm}}.
 #' If the column names of \code{data} match those outlined here, the following
-#' four arguments may be ignored.
+#' four arguments may be ignored. Note that it is also possible to provide hourly
+#' data in the \code{x} column as class \code{POSIXct}.
 #' @param x This column is expected to contain a vector of dates as per the
 #' specification of \code{\link{ts2clm}}. If a column headed \code{t} is present in
 #' the dataframe, this argument may be omitted; otherwise, specify the name of
-#' the column with dates here.
+#' the column with dates here. Note that it is also possible to provide hourly
+#' data as class \code{POSIXct}.
 #' @param y This is a column containing the measurement variable. If the column
 #' name differs from the default (i.e. \code{temp}), specify the name here.
 #' @param seasClim The dafault for this argument assumes that the seasonal
@@ -45,7 +47,7 @@
 #' occur before/after a short gap as specified by \code{maxGap}. The default
 #' is \code{TRUE}.
 #' @param maxGap The maximum length of gap allowed for the joining of MHWs. The
-#' default is \code{2} days.
+#' default is \code{2} time steps.
 #' @param maxGap2 The maximum gap length after applying both thresholds.
 #' By default \code{maxGap2 = maxGap} and is ignored if \code{threshClim2} has not
 #' been specified.
@@ -58,23 +60,30 @@
 #' in \code{\link{ts2clm}} by setting \code{pctile = 10} (see example below).
 #' Any value may be used, but this is the setting used for the calculation of
 #' MCSs in Schlegel et al. (2017a).
-#' @param protoEvents Boolean specifying whether the full time series must be
-#' returned as a long table, together with columns indicating whether or not the
-#' threshold criterion (\code{threshCriterion}) and duration criterion (\code{durationCriterion})
-#' have been exceeded, a column showing if a heatwave is present (i.e. both
-#' \code{threshCriterion} and \code{durationCriterion} \code{TRUE}), and a
-#' sequential number uniquely identifying the detected event. In this case,
-#' the heatwave metrics will not be reported. The default is \code{FALSE}.
+#' @param protoEvents The default, \code{protoEvents = FALSE}, will return the full
+#' output comprised of a list of two data frames, one with the \code{climatology}
+#' and the other with the \code{event} metrics. See \strong{Value} below.
+#' If \code{protoEvents = TRUE}, the output will contain the original time series
+#' together with columns indicating if the threshold criterion
+#' (\code{threshCriterion}) and duration criterion (\code{durationCriterion})
+#' have been exceeded, a column showing if a heatwave is present
+#' (i.e. both \code{threshCriterion} and \code{durationCriterion}
+#' \code{TRUE}), and a sequential number uniquely identifying the detected event(s);
+#' heatwave metrics will not be reported in the \code{event} dataframe. Note also that
+#' if \code{protoEvents = TRUE} it will ignore whatever the user provides to the
+#' \code{categories} argument and anything else passed to \code{...}.
 #' @param categories Rather than using \code{\link{category}} as a separate step to determine
 #' the categories of the detected MHWs, one may choose to set this argument to \code{TRUE}.
 #' One may pass the same arguments used in the \code{\link{category}} function to this function
 #' to affect the output. Note that the default behaviour of \code{\link{category}} is to
 #' return the event data only. To return the same list structure that \code{\link{detect_event}}
-#' outputs by default, use \code{climatology = TRUE}.
+#' outputs by default, add the argument \code{climatology = TRUE}.
 #' @param roundRes This argument allows the user to choose how many decimal places
 #' the MHW metric outputs will be rounded to. Default is 4. To
 #' prevent rounding set \code{roundRes = FALSE}. This argument may only be given
 #' numeric values or FALSE.
+#' @param returnDF The default (\code{TRUE}) tells the function to return the results as
+#' type \code{data.frame}. \code{FALSE} will return the results as a \code{data.table}.
 #' @param ... Other arguments that will be passed internally to \code{\link{category}}
 #' when \code{categories = TRUE}. See the documentation for \code{\link{category}} for the
 #' list of possible arguments.
@@ -114,7 +123,7 @@
 #' of our preparation of Schlegel et al. (2017), wherein the cold events
 #' receive a brief overview.
 #'
-#' @return The function will return a list of two tibbles (see the \code{tidyverse}),
+#' @return The function will return a list of two data.frames,
 #' \code{climatology} and \code{event}, which are, surprisingly, the climatology
 #' and event results, respectively. The climatology contains the full time series of
 #' daily temperatures, as well as the the seasonal climatology, the threshold
@@ -155,9 +164,9 @@
 #'   \item{intensity_cumulative}{Cumulative intensity [deg. C x days].}
 #'   \item{rate_onset}{Onset rate of event [deg. C / day].}
 #'   \item{rate_decline}{Decline rate of event [deg. C / day].}
-#'   \item{event_name}{The name of the event. Generated from the \code{\link{name}}
+#'   \item{event_name}{The name of the event. Generated from the \code{name}
 #'   value provided and the year of the \code{date_peak} of
-#'   the event. If no \code{\link{name}} value is provided the default "Event" is used.
+#'   the event. If no \code{name} value is provided the default "Event" is used.
 #'   As proposed in Hobday et al. (2018), \code{Moderate} events are not given a name
 #'   so as to prevent multiple repeat names within the same year. If two or more events
 #'   ranked greater than Moderate are reported within the same year, they will be
@@ -210,6 +219,7 @@
 #' @export
 #'
 #' @examples
+#' data.table::setDTthreads(threads = 1)
 #' res_clim <- ts2clm(sst_WA, climatologyPeriod = c("1983-01-01", "2012-12-31"))
 #' out <- detect_event(res_clim)
 #' # show a portion of the climatology:
@@ -263,6 +273,7 @@ detect_event <- function(data,
                          protoEvents = FALSE,
                          categories = FALSE,
                          roundRes = 4,
+                         returnDF = TRUE,
                          ...) {
 
   if (!(is.numeric(minDuration)))
@@ -276,6 +287,12 @@ detect_event <- function(data,
       stop("Please ensure that 'roundRes' is either a numeric value or FALSE.")
     }
   }
+
+  # Ensure ts2clm returns a data.table
+  # Do a check: if already a data.table, carry on; setDT if a data.frame
+  # Ensure all code from here on is translated to data.table, incl. proto_events
+  # testing...
+  # data <- res_ts
 
   temp <- seas <- thresh <- threshCriterion <- durationCriterion <- event <- NULL
 
@@ -291,20 +308,30 @@ detect_event <- function(data,
   ts_thresh <- eval(substitute(threshClim), data)
   if (is.null(ts_thresh) | is.function(ts_thresh))
     stop("Please ensure that a column named 'thresh' is present in your data.frame or that you have assigned a column to the 'threshClim' argument.")
-  t_series <- data.frame(ts_x, ts_y, ts_seas, ts_thresh)
-  rm(ts_x); rm(ts_y); rm(ts_seas); rm(ts_thresh)
+  # t_series <- data.table::data.table(ts_x = data$t, ts_y = data$temp, ts_seas = data$seas, ts_thresh = data$thresh)
+  t_series <- data.table::data.table(ts_x,
+                                     ts_y,
+                                     ts_seas,
+                                     ts_thresh)
+  rm(ts_x, ts_y, ts_seas, ts_thresh)
 
   if (coldSpells) {
 
     t_series$ts_y <- -t_series$ts_y
     t_series$ts_seas <- -t_series$ts_seas
     t_series$ts_thresh <- -t_series$ts_thresh
+    # NB: This only internally attributes negative values
+    # Meaning the following threshCriterion code does not work as expected
+    # t_series[, ts_y := -ts_y]
+    # t_series[, ts_seas := -ts_seas]
+    # t_series[, ts_thresh := -ts_thresh]
 
   }
 
-  t_series$ts_y[is.na(t_series$ts_y)] <- t_series$ts_seas[is.na(t_series$ts_y)]
-  t_series$threshCriterion <- t_series$ts_y > t_series$ts_thresh
-  t_series$threshCriterion[is.na(t_series$threshCriterion)] <- FALSE
+  t_series[is.na(ts_y), ts_y := ts_seas]
+  t_series[, threshCriterion := !is.na(ts_y) & ts_y > ts_thresh]
+
+  # Below: make sure proto_events returns a data.table
 
   events_clim <- proto_event(t_series,
                              criterion_column = t_series$threshCriterion,
@@ -323,141 +350,197 @@ detect_event <- function(data,
   }
 
   if (protoEvents) {
-    events_clim <- data.frame(data,
-                              threshCriterion = events_clim$threshCriterion,
-                              durationCriterion = events_clim$durationCriterion,
-                              event = events_clim$event,
-                              event_no = events_clim$event_no)
+
+    events_clim <- data.table::data.table(data,
+                                          threshCriterion = events_clim$threshCriterion,
+                                          durationCriterion = events_clim$durationCriterion,
+                                          event = events_clim$event,
+                                          event_no = events_clim$event_no)
+
+    if (returnDF) data.table::setDF(events_clim)
     return(events_clim)
 
   } else {
 
-  intensity_mean <- intensity_max <- intensity_cumulative <- intensity_mean_relThresh <-
-    intensity_max_relThresh <- intensity_cumulative_relThresh <- intensity_mean_abs <-
-    intensity_max_abs <- intensity_cumulative_abs <- rate_onset <- rate_decline <-
-    mhw_rel_thresh <- mhw_rel_seas <- event_no <- row_index <- index_start <- index_peak <-
-    index_end <- NULL
+    intensity_mean <- intensity_max <- intensity_cumulative <- intensity_mean_relThresh <-
+      intensity_max_relThresh <- intensity_cumulative_relThresh <- intensity_mean_abs <-
+      intensity_max_abs <- intensity_cumulative_abs <- rate_onset <- rate_decline <-
+      mhw_rel_thresh <- mhw_rel_seas <- event_no <- row_index <- index_start <- index_peak <-
+      index_end <- NULL
 
-  if (nrow(stats::na.omit(events_clim)) > 0) {
-    events <- data.frame(events_clim,
-                         row_index = base::seq_len(nrow(events_clim)),
-                         mhw_rel_seas = events_clim$ts_y - events_clim$ts_seas,
-                         mhw_rel_thresh = events_clim$ts_y - events_clim$ts_thresh)
-    events <- events[stats::complete.cases(events$event_no),]
-    events <- plyr::ddply(events, c("event_no"), .fun = plyr::summarise,
-                          index_start = min(row_index),
-                          index_peak = row_index[mhw_rel_seas == max(mhw_rel_seas)][1],
-                          index_end = max(row_index),
-                          duration = index_end - index_start + 1,
-                          date_start = min(ts_x),
-                          date_peak = ts_x[mhw_rel_seas == max(mhw_rel_seas)][1],
-                          date_end = max(ts_x),
-                          intensity_mean = mean(mhw_rel_seas),
-                          intensity_max = max(mhw_rel_seas),
-                          intensity_var = sqrt(stats::var(mhw_rel_seas)),
-                          intensity_cumulative = sum(mhw_rel_seas),
-                          intensity_mean_relThresh = mean(mhw_rel_thresh),
-                          intensity_max_relThresh = max(mhw_rel_thresh),
-                          intensity_var_relThresh = sqrt(stats::var(mhw_rel_thresh)),
-                          intensity_cumulative_relThresh = sum(mhw_rel_thresh),
-                          intensity_mean_abs = mean(ts_y),
-                          intensity_max_abs = max(ts_y),
-                          intensity_var_abs = sqrt(stats::var(ts_y)),
-                          intensity_cumulative_abs = sum(ts_y))
-    events <- tibble::as_tibble(events)
+    if (nrow(stats::na.omit(events_clim)) > 0) {
+      events <- data.table(events_clim,
+                           row_index = base::seq_len(nrow(events_clim)),
+                           mhw_rel_seas = events_clim$ts_y - events_clim$ts_seas,
+                           mhw_rel_thresh = events_clim$ts_y - events_clim$ts_thresh)
 
-    mhw_rel_seas <- t_series$ts_y - t_series$ts_seas
-    A <- mhw_rel_seas[events$index_start]
-    B <- t_series$ts_y[events$index_start - 1]
-    C <- t_series$ts_seas[events$index_start - 1]
-    if (length(B) + 1 == length(A)) {
-      B <- c(NA, B)
-      C <- c(NA, C)
-    }
-    mhw_rel_seas_start <- 0.5 * (A + B - C)
+      events <- events[!is.na(event_no)]
 
-    events$rate_onset <- ifelse(
-      events$index_start > 1,
-      (events$intensity_max - mhw_rel_seas_start) / (as.numeric(
-        difftime(events$date_peak, events$date_start, units = "days")) + 0.5),
-      NA
-    )
+      year <- ts_x <- doy <- NULL
 
-    D <- mhw_rel_seas[events$index_end]
-    E <- t_series$ts_y[events$index_end + 1]
-    G <- t_series$ts_seas[events$index_end + 1]
-    mhw_rel_seas_end <- 0.5 * (D + E - G)
+      events <- events[, list(
+        index_start = min(row_index),
+        index_peak = row_index[which.max(mhw_rel_seas)][1],
+        index_end = max(row_index),
+        duration = max(row_index) - min(row_index) + 1,
+        date_start = min(ts_x),
+        date_peak = ts_x[which.max(mhw_rel_seas)][1],
+        date_end = max(ts_x),
+        intensity_mean = mean(mhw_rel_seas),
+        intensity_max = max(mhw_rel_seas),
+        intensity_var = stats::sd(mhw_rel_seas),
+        intensity_cumulative = sum(mhw_rel_seas),
+        intensity_mean_relThresh = mean(mhw_rel_thresh),
+        intensity_max_relThresh = max(mhw_rel_thresh),
+        intensity_var_relThresh = stats::sd(mhw_rel_thresh),
+        intensity_cumulative_relThresh = sum(mhw_rel_thresh),
+        intensity_mean_abs = mean(ts_y),
+        intensity_max_abs = max(ts_y),
+        intensity_var_abs = stats::sd(ts_y),
+        intensity_cumulative_abs = sum(ts_y)
+      ), by = list(event_no)]
 
-    events$rate_decline <- ifelse(
-      events$index_end < nrow(t_series),
-      (events$intensity_max - mhw_rel_seas_end) / (as.numeric(
-        difftime(events$date_end, events$date_peak, units = "days")) + 0.5),
-      NA
-    )
+      mhw_rel_seas <- t_series$ts_y - t_series$ts_seas
+      A <- mhw_rel_seas[events$index_start]
+      B <- t_series$ts_y[events$index_start - 1]
+      C <- t_series$ts_seas[events$index_start - 1]
+      if (length(B) + 1 == length(A)) {
+        B <- c(NA, B)
+        C <- c(NA, C)
+      }
+      mhw_rel_seas_start <- 0.5 * (A + B - C)
 
-    if (coldSpells) {
-      events$intensity_mean <- -events$intensity_mean
-      events$intensity_max <- -events$intensity_max
-      events$intensity_cumulative <- -events$intensity_cumulative
-      events$intensity_mean_relThresh <- -events$intensity_mean_relThresh
-      events$intensity_max_relThresh <- -events$intensity_max_relThresh
-      events$intensity_cumulative_relThresh <- -events$intensity_cumulative_relThresh
-      events$intensity_mean_abs <- -events$intensity_mean_abs
-      events$intensity_max_abs <- -events$intensity_max_abs
-      events$intensity_cumulative_abs <- -events$intensity_cumulative_abs
-      events$rate_onset <- -events$rate_onset
-      events$rate_decline <- -events$rate_decline
-    }
+      events$rate_onset <- ifelse(
+        events$index_start > 1,
+        (events$intensity_max - mhw_rel_seas_start) / (as.numeric(
+          difftime(events$date_peak, events$date_start, units = "days")) + 0.5),
+        NA
+      )
 
-  } else {
-    events <- data.frame(event_no = NA, index_start = NA, index_peak = NA, index_end = NA,
-                         duration = NA, date_start = NA, date_peak = NA, date_end = NA,
-                         intensity_mean = NA, intensity_max = NA, intensity_var = NA,
-                         intensity_cumulative = NA, intensity_mean_relThresh = NA,
-                         intensity_max_relThresh = NA, intensity_var_relThresh = NA,
-                         intensity_cumulative_relThresh = NA, intensity_mean_abs = NA,
-                         intensity_max_abs = NA, intensity_var_abs = NA,
-                         intensity_cumulative_abs = NA, rate_onset = NA, rate_decline = NA)
-    events <- tibble::as_tibble(events)
-  }
+      D <- mhw_rel_seas[events$index_end]
+      E <- t_series$ts_y[events$index_end + 1]
+      G <- t_series$ts_seas[events$index_end + 1]
+      mhw_rel_seas_end <- 0.5 * (D + E - G)
 
-  event_cols <- names(events)[9:22]
-  clim_cols <- names(events_clim)[2:4]
-  if (nrow(events) == 1) {
-    if (is.na(events$rate_onset)) {
-      event_cols <- event_cols[-grep(pattern = "rate_onset", x = event_cols, value = FALSE)]
-    }
-    if (is.na(events$rate_decline)) {
-      event_cols <- event_cols[-grep(pattern = "rate_decline", x = event_cols, value = FALSE)]
-    }
-  }
+      events$rate_decline <- ifelse(
+        events$index_end < nrow(t_series),
+        (events$intensity_max - mhw_rel_seas_end) / (as.numeric(
+          difftime(events$date_end, events$date_peak, units = "days")) + 0.5),
+        NA
+      )
 
-  if (is.numeric(roundRes)) {
-    if (nrow(events) > 0) {
-      events <- dplyr::mutate(events, dplyr::across(dplyr::all_of(event_cols), round, roundRes))
-      events_clim <- dplyr::mutate(events_clim, dplyr::across(dplyr::all_of(clim_cols), round, roundRes))
-    }
-  }
+      if (coldSpells) {
+        events$intensity_mean <- -events$intensity_mean
+        events$intensity_max <- -events$intensity_max
+        events$intensity_cumulative <- -events$intensity_cumulative
+        events$intensity_mean_relThresh <- -events$intensity_mean_relThresh
+        events$intensity_max_relThresh <- -events$intensity_max_relThresh
+        events$intensity_cumulative_relThresh <- -events$intensity_cumulative_relThresh
+        events$intensity_mean_abs <- -events$intensity_mean_abs
+        events$intensity_max_abs <- -events$intensity_max_abs
+        events$intensity_cumulative_abs <- -events$intensity_cumulative_abs
+        events$rate_onset <- -events$rate_onset
+        events$rate_decline <- -events$rate_decline
+      }
 
-  data_clim <- tibble::as_tibble(cbind(data, events_clim[,5:8]))
-
-  data_res <- list(climatology = data_clim, event = events)
-
-  if (categories) {
-    data_cat <- category(data_res, ...)
-    if(is.data.frame(data_cat)){
-      data_res <- dplyr::left_join(events, data_cat,
-                                   by = c("event_no", "duration",
-                                          "intensity_max" = "i_max", "date_peak" = "peak_date"))
     } else {
-      data_res <- list(climatology = dplyr::left_join(data_res$climatology,
-                                                      data_cat$climatology, by = c("t", "event_no")),
-                       event = dplyr::left_join(data_res$event, data_cat$event,
-                                                by = c("event_no", "duration",
-                                                       "intensity_max" = "i_max", "date_peak" = "peak_date")))
+      events <- data.frame(event_no = NA, index_start = NA, index_peak = NA, index_end = NA,
+                           duration = NA, date_start = NA, date_peak = NA, date_end = NA,
+                           intensity_mean = NA, intensity_max = NA, intensity_var = NA,
+                           intensity_cumulative = NA, intensity_mean_relThresh = NA,
+                           intensity_max_relThresh = NA, intensity_var_relThresh = NA,
+                           intensity_cumulative_relThresh = NA, intensity_mean_abs = NA,
+                           intensity_max_abs = NA, intensity_var_abs = NA,
+                           intensity_cumulative_abs = NA, rate_onset = NA, rate_decline = NA)
     }
-  }
-  return(data_res)
+
+    event_cols <- names(events)[9:22]
+    clim_cols <- names(events_clim)[2:4]
+    if (nrow(events) == 1) {
+      if (is.na(events$rate_onset)) {
+        event_cols <- event_cols[-grep(pattern = "rate_onset", x = event_cols, value = FALSE)]
+      }
+      if (is.na(events$rate_decline)) {
+        event_cols <- event_cols[-grep(pattern = "rate_decline", x = event_cols, value = FALSE)]
+      }
+    }
+
+    if (is.numeric(roundRes)) {
+      if (nrow(events) > 0) {
+        events <- as.data.frame(events)
+        events_clim <- as.data.frame(events_clim)
+        events[,event_cols] <- round(events[,event_cols], roundRes)
+        events_clim[,clim_cols] <- round(events_clim[,clim_cols], roundRes)
+      }
+    }
+
+    data_clim <- cbind(data, events_clim[,5:8])
+
+    data_res <- list(climatology = data_clim, event = events)
+
+    if (categories) {
+      data_temp <- list(climatology = events_clim, event = events)
+      colnames(data_temp$climatology)[1:4] <- c("t", "temp", "seas", "thresh")
+
+      if (coldSpells) {
+        data_temp$climatology$temp <- -data_temp$climatology$temp
+        data_temp$climatology$seas <- -data_temp$climatology$seas
+        data_temp$climatology$thresh <- -data_temp$climatology$thresh
+      }
+
+      if ("lat" %in% colnames(data)) {
+        data_temp$climatology$lat <- data$lat
+      }
+      if ("latitude" %in% colnames(data)) {
+        data_temp$climatology$lat <- data$latitude
+      }
+
+      data_cat <- category(data_temp, ...)
+
+      if (is.data.frame(data_cat)) {
+        colnames(data_cat)[c(3,5)] <- c("date_peak", "intensity_max")
+        data_res <- base::merge(x = events, y = data_cat,
+                                by = c("event_no", "duration", "intensity_max", "date_peak"))
+        data_res <- data_res[order(data_res$event_no),]
+        data_res <- data_res[,c(1,5,6,7,2,8,4,9,10,3,11:29)]
+        row.names(data_res) <- NULL
+
+      } else {
+        colnames(data_cat$event)[c(3,5)] <- c("date_peak", "intensity_max")
+        data_res <- list(climatology = base::merge(x = data_res$climatology, y = data_cat$climatology,
+                                                   by = c("t", "event_no"), all.x = TRUE),
+                         event = base::merge(x = data_res$event, y = data_cat$event,
+                                             by = c("event_no", "duration", "intensity_max", "date_peak")))
+
+        type_cols <- base::sapply(data_res$climatology, class)
+        date_cols <- colnames(data_res$climatology)[which(type_cols == "Date")]
+        data_cols <- colnames(data)[!colnames(data) %in% colnames(data_cat$climatology)]
+        other_cols <- colnames(data_res$climatology)[!colnames(data_res$climatology) %in% c(date_cols, data_cols)]
+
+        data_res$climatology <- data_res$climatology[, c(date_cols, data_cols, other_cols)]
+        data_res$climatology <- data_res$climatology[base::order(data_res$climatology$t),]
+        data_res$event <- data_res$event[order(data_res$event$event_no),]
+        data_res$event <- data_res$event[,c(1,5,6,7,2,8,4,9,10,3,11:29)]
+        row.names(data_res$event) <- NULL
+      }
+    }
+
+    if (returnDF) {
+      if(base::class(data_res) == "list") {
+        data.table::setDF(data_res$climatology)
+        data.table::setDF(data_res$event)
+      } else {
+        data.table::setDF(data_res)
+      }
+    } else {
+      if(base::class(data_res) == "list") {
+        data.table::setDT(data_res$climatology)
+        data.table::setDT(data_res$event)
+      } else {
+        data.table::setDT(data_res)
+      }
+    }
+    return(data_res)
+
   }
 }
-

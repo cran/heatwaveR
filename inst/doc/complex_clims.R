@@ -40,8 +40,8 @@ bubble_plot <- ggplot(data = events$event, aes(x = date_peak, y = intensity_max)
         legend.box.background = element_rect(colour = "black"))
 
 # Don't forget to set 'event_line(y = tMax)'
-ggarrange(event_line(events, y = tMax, metric = "intensity_max"),
-          event_line(events, y = tMax, metric = "intensity_max", category = T),
+ggarrange(event_line(events, y = tMax, metric = intensity_max),
+          event_line(events, y = tMax, metric = intensity_max, category = T),
           lolli_plot(events),
           bubble_plot,
           ncol = 2, nrow = 2, align = "hv")
@@ -104,12 +104,12 @@ head(events_one_thresh_filtered$event)
 head(events_two_thresh$event)
 
 ## ----lolliplot-duration, fig.cap="Difference in duration (days) of events given different applications of thresholds. Note the difference in the y-axes."----
-ggarrange(lolli_plot(events_two_thresh, metric = "duration"), 
-          lolli_plot(events_one_thresh_filtered, metric = "duration"), 
+ggarrange(lolli_plot(events_two_thresh, metric = duration), 
+          lolli_plot(events_one_thresh_filtered, metric = duration), 
           labels = c("Double threshold", "Filter threshold"))
 
 ## ----lolliplot-int-cum, fig.cap="Difference in cumulative intensity (°C x days) of events given different applications of thresholds. Note the difference in the y-axes."----
-ggarrange(lolli_plot(events_two_thresh, metric = "intensity_cumulative"), 
-          lolli_plot(events_one_thresh_filtered, metric = "intensity_cumulative"), 
+ggarrange(lolli_plot(events_two_thresh, metric = intensity_cumulative), 
+          lolli_plot(events_one_thresh_filtered, metric = intensity_cumulative), 
           labels = c("Double threshold", "Filter threshold"))
 

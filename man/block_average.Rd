@@ -4,14 +4,14 @@
 \alias{block_average}
 \title{Calculate yearly means for event metrics.}
 \usage{
-block_average(data, x = t, y = temp, report = "full")
+block_average(data, x = t, y = temp, report = "full", returnDF = TRUE)
 }
 \arguments{
 \item{data}{Accepts the data returned by the \code{\link{detect_event}} function.}
 
 \item{x}{This column is expected to contain a vector of dates as per the
 specification of \code{ts2clm}. If a column headed \code{t} is present in
-the dataframe, this argument may be ommitted; otherwise, specify the name of
+the dataframe, this argument may be omitted; otherwise, specify the name of
 the column with dates here.}
 
 \item{y}{This is a column containing the measurement variable. If the column
@@ -21,6 +21,9 @@ name differs from the default (i.e. \code{temp}), specify the name here.}
 the report to contain NAs for any years in which no events were detected
 (except for \code{count}, which will be zero in those years), while \code{partial}
 reports only the years wherein events were detected. The default is \code{full}.}
+
+\item{returnDF}{The default (\code{TRUE}) tells the function to return the results as
+type \code{data.frame}. \code{FALSE} will return the results as a \code{data.table}.}
 }
 \value{
 The function will return a data frame of the averaged (or aggregate)
@@ -57,7 +60,7 @@ Calculate yearly means for event metrics.
 }
 \details{
 This function needs to be provided with the full output from the \code{detect_event}
-or \code{exceedance} functions. Note that the yearly averages are calculted only for
+or \code{exceedance} functions. Note that the yearly averages are calculated only for
 complete years (i.e. years that start/end part-way through the year at the beginning
 or end of the original time series are removed from the calculations).
 

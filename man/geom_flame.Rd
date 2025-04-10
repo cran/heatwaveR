@@ -41,9 +41,9 @@ as a string.}
 \item{position}{Position adjustment, either as a string, or the result of a call
 to a position adjustment function.}
 
-\item{...}{other arguments passed on to \code{\link{layer}}. These are
+\item{...}{other arguments passed on to \code{\link[ggplot2]{layer}}. These are
 often aesthetics, used to set an aesthetic to a fixed value, like
-\code{color = "red"} or \code{size = 3}. They may also be parameters
+\code{color = "red"} or \code{linewidth = 3}. They may also be parameters
 to the paired geom/stat.}
 
 \item{n}{The number of steps along the x-axis (i.e. in a daily time series this
@@ -73,7 +73,7 @@ specification, e.g. \code{borders()}.}
 }
 \description{
 This function will create polygons between two lines. If given a
-temperature and theshold time series, like that produced by
+temperature and threshold time series, like that produced by
 \code{\link{detect_event}}, the output will meet the specifications
 of Hobday et al. (2016) shown as 'flame polygons.' If one wishes to
 plot polygons below a given threshold, and not above, switch the values
@@ -93,7 +93,7 @@ are in bold):
   \item \strong{\code{y2}}
   \item \code{colour}
   \item \code{fill}
-  \item \code{size}
+  \item \code{linewidth}
   \item \code{alpha}
   \item \code{linetype}
 }
@@ -109,8 +109,8 @@ library(ggplot2)
 
 ggplot(mhw, aes(x = t, y = temp)) +
   geom_flame(aes(y2 = thresh)) +
-  geom_text(aes(x = as.Date("2011-02-01"), y = 28,
-            label = "That's not a heatwave.\nThis, is a heatwave.")) +
+  annotate(geom = "text", x = as.Date("2011-02-01"), y = 28,
+           label = "That's not a heatwave.\nThis, is a heatwave.") +
   xlab("Date") + ylab(expression(paste("Temperature [", degree, "C]")))
 
 }

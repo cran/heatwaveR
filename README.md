@@ -1,6 +1,6 @@
 # heatwaveR <img src="vignettes/logo.png" width=200 align="right" />
 
-[![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/heatwaveR)](https://cran.r-project.org/package=heatwaveR)
+[![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/heatwaveR)](https://cran.r-project.org/package=heatwaveR)
 [![R-CMD-check](https://github.com/robwschlegel/heatwaveR/workflows/R-CMD-check/badge.svg)](https://github.com/robwschlegel/heatwaveR/actions)
 [![Codecov test
 coverage](https://codecov.io/gh/robwschlegel/heatwaveR/branch/master/graph/badge.svg)](https://app.codecov.io/gh/robwschlegel/heatwaveR?branch=master)
@@ -30,19 +30,25 @@ alleviated the bottlenecks that slowed down the climatology creation
 portions of the code as well as generally creating an overall increase
 in the speed of the calculations. Currently the R code runs about as
 fast as the original python functions, at least in as far as applying it
-to single time series of temperatures. Readers familiar with both
-languages will know about the ongoing debate around the relative speed
-of the two languages. In our experience, R can be as fast as python,
-provided that attention is paid to finding ways to reduce the
-computational inefficiencies that stem from i) the liberal use of
-complex and inefficient non-atomic data structures, such as data frames;
-ii) the reliance on non-vectorised calculations such as loops; and iii)
-lazy (but convenient) coding that comes from drawing too heavily on the
-`tidyverse` suite of packages. We will continue to ensure that
-**`heatwaveR`** becomes more-and-more efficient so that it can be
-applied to large gridded data products with ease.
+to single time series of temperatures.
 
-This new package was developed and released in order to better
+Readers familiar with both languages will know about the ongoing debate
+around the relative speed of the two languages. In our experience, R can
+be as fast as python, provided that attention is paid to finding ways to
+reduce the computational inefficiencies that stem from i) the liberal
+use of complex and inefficient non-atomic data structures, such as data
+frames; ii) the reliance on non-vectorised calculations such as loops;
+and iii) lazy (but convenient) coding that comes from drawing too
+heavily on the `tidyverse` suite of packages. We will continue to ensure
+that **`heatwaveR`** becomes more-and-more efficient so that it can be
+applied to large gridded data products with ease. To that end, the
+extension package
+[**`heatwave3`**](https://robwschlegel.github.io/heatwave3/index.html)
+has been developed. This helps the user to apply the code from
+**`heatwaveR`** directly onto their NetCDF and other 3D gridded data
+files.
+
+**`heatwaveR`** was also developed and released in order to better
 accommodate the inclusion of the definitions of atmospheric heatwaves in
 addition to MHWs. Additionally, **`heatwaveR`** also provides the first
 implementation of a definition for a ‘compound heatwave’. There are
@@ -64,7 +70,9 @@ Or the development version may be installed from GitHub with:
 | Function          | Description                                                                                                    |
 |-------------------|----------------------------------------------------------------------------------------------------------------|
 | `ts2clm()`        | Constructs seasonal and threshold climatologies as per the definition of Hobday et al. (2016).                 |
+| `ts2clm3()`       | As `ts2clm()` but built entirely on data.table for an up to 200% speed improvement                             |
 | `detect_event()`  | The main function which detects the events as per the definition of Hobday et al. (2016).                      |
+| `detect_event3()` | As `detect_event()` but with data.table internals (not yet for category classification–to follow)              |
 | `block_average()` | Calculates annual means for event metrics.                                                                     |
 | `category()`      | Applies event categories to the output of `detect_event()` based on Hobday et al. (2018).                      |
 | `exceedance()`    | A function similar to `detect_event()` but that detects consecutive days above/below a given static threshold. |
@@ -100,7 +108,7 @@ need to be determined by the user.
 | `thresh`            | Seasonally varying threshold (e.g., 90th percentile) (deg. C).                                                                                                                                                                                              |
 | `var`               | Variance (standard deviation) per `doy` of `temp` (deg. C). (not returned by default as of v0.3.5)                                                                                                                                                          |
 | `threshCriterion`   | Boolean indicating if `temp` exceeds `thresh`.                                                                                                                                                                                                              |
-| `durationCriterion` | Boolean indicating whether periods of consecutive `threshCriterion` are &gt;= `minDuration`.                                                                                                                                                                |
+| `durationCriterion` | Boolean indicating whether periods of consecutive `threshCriterion` are \>= `minDuration`.                                                                                                                                                                  |
 | `event`             | Boolean indicating if all criteria that define a MHW or MCS are met.                                                                                                                                                                                        |
 | `event_no`          | A sequential number indicating the ID and order of occurrence of the MHWs or MCSs.                                                                                                                                                                          |
 
@@ -149,28 +157,28 @@ For detailed explanations and walkthroughs on the use of the
 **`heatwaveR`** package please click on the Vignettes tab in the toolbar
 above, or follow the links below:
 
--   For a basic introduction to the [detection and
-    visualisation](https://robwschlegel.github.io/heatwaveR/articles/detection_and_visualisation.html)
-    of events.
--   For an explanation on the use of the
-    [exceedance](https://robwschlegel.github.io/heatwaveR/articles/exceedance.html)
-    function.
--   For a walkthrough on the calculation and visualisation of [event
-    categories](https://robwschlegel.github.io/heatwaveR/articles/event_categories.html).
--   For examples on the calculation of atmospheric events with
-    [alternative
-    thresholds](https://robwschlegel.github.io/heatwaveR/articles/complex_clims.html).
--   For a demonstration on how to [download and prepare OISST
-    data](https://robwschlegel.github.io/heatwaveR/articles/OISST_preparation.html).
--   Which may then have the `detect_event()` function applied to the
-    [gridded
-    data](https://robwschlegel.github.io/heatwaveR/articles/gridded_event_detection.html),
-    and then fit a GLM and plot the results.
+- For a basic introduction to the [detection and
+  visualisation](https://robwschlegel.github.io/heatwaveR/articles/detection_and_visualisation.html)
+  of events.
+- For an explanation on the use of the
+  [exceedance](https://robwschlegel.github.io/heatwaveR/articles/exceedance.html)
+  function.
+- For a walkthrough on the calculation and visualisation of [event
+  categories](https://robwschlegel.github.io/heatwaveR/articles/event_categories.html).
+- For examples on the calculation of atmospheric events with
+  [alternative
+  thresholds](https://robwschlegel.github.io/heatwaveR/articles/complex_clims.html).
+- For a demonstration on how to [download and prepare OISST
+  data](https://robwschlegel.github.io/heatwaveR/articles/OISST_preparation.html).
+- Which may then have the `detect_event()` function applied to the
+  [gridded
+  data](https://robwschlegel.github.io/heatwaveR/articles/gridded_event_detection.html),
+  and then fit a GLM and plot the results.
 
 ## The Marine Heatwave Tracker
 
 To see the **`heatwaveR`** package in action, check out the [Marine
-Heatwave Tracker](http://www.marineheatwaves.org/tracker.html) website.
+Heatwave Tracker](https://www.marineheatwaves.org/tracker.html) website.
 This is a daily updating global analysis of where in the world marine
 heatwaves are occurring. It has near real-time information as well as
 historic data going back to January 1st, 1982 and uses the Hobday et

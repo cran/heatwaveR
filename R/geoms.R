@@ -1,7 +1,7 @@
 #' Create 'flame' polygons.
 #'
 #' This function will create polygons between two lines. If given a
-#' temperature and theshold time series, like that produced by
+#' temperature and threshold time series, like that produced by
 #' \code{\link{detect_event}}, the output will meet the specifications
 #' of Hobday et al. (2016) shown as 'flame polygons.' If one wishes to
 #' plot polygons below a given threshold, and not above, switch the values
@@ -22,7 +22,7 @@
 #'   \item \strong{\code{y2}}
 #'   \item \code{colour}
 #'   \item \code{fill}
-#'   \item \code{size}
+#'   \item \code{linewidth}
 #'   \item \code{alpha}
 #'   \item \code{linetype}
 #' }
@@ -56,9 +56,9 @@
 #' specification, e.g. \code{borders()}.
 #' @param na.rm If \code{FALSE} (the default), removes missing values with
 #'    a warning. If \code{TRUE} silently removes missing values.
-#' @param ... other arguments passed on to \code{\link{layer}}. These are
+#' @param ... other arguments passed on to \code{\link[ggplot2]{layer}}. These are
 #'   often aesthetics, used to set an aesthetic to a fixed value, like
-#'   \code{color = "red"} or \code{size = 3}. They may also be parameters
+#'   \code{color = "red"} or \code{linewidth = 3}. They may also be parameters
 #'   to the paired geom/stat.
 #' @param n The number of steps along the x-axis (i.e. in a daily time series this
 #' would be days) required before the area between \code{y} and \code{y2} will be
@@ -89,8 +89,8 @@
 #'
 #' ggplot(mhw, aes(x = t, y = temp)) +
 #'   geom_flame(aes(y2 = thresh)) +
-#'   geom_text(aes(x = as.Date("2011-02-01"), y = 28,
-#'             label = "That's not a heatwave.\nThis, is a heatwave.")) +
+#'   annotate(geom = "text", x = as.Date("2011-02-01"), y = 28,
+#'            label = "That's not a heatwave.\nThis, is a heatwave.") +
 #'   xlab("Date") + ylab(expression(paste("Temperature [", degree, "C]")))
 #'
 geom_flame <- function(mapping = NULL, data = NULL,
@@ -122,7 +122,7 @@ GeomFlame <- ggplot2::ggproto("GeomFlame", ggplot2::Geom,
                               required_aes = c("x", "y", "y2"),
 
                               default_aes = ggplot2::aes(colour = NA, fill = "salmon",
-                                                         size = 0.5, linetype = 1, alpha = NA),
+                                                         linewidth = 0.5, linetype = 1, alpha = NA),
 
                               draw_key = ggplot2::draw_key_polygon,
 
@@ -130,7 +130,7 @@ GeomFlame <- ggplot2::ggproto("GeomFlame", ggplot2::Geom,
                                 if (na.rm) data <- data[stats::complete.cases(data[c("x", "y", "y2")]), ]
 
                                 # Check that aesthetics are constant
-                                aes <- unique(data[c("colour", "fill", "size", "linetype", "alpha")])
+                                aes <- unique(data[c("colour", "fill", "linewidth", "linetype", "alpha")])
                                 if (nrow(aes) > 1) {
                                   stop("Aesthetics must be consistent")
                                 }
@@ -192,13 +192,15 @@ GeomFlame <- ggplot2::ggproto("GeomFlame", ggplot2::Geom,
                                                         id = c(ids, rev(ids)))
                                 munched <- ggplot2::coord_munch(coord, positions, panel_scales)
 
+                                # NB: grid dependency is necessary and imported by ggplot2 so no worries
                                 grid::polygonGrob(
                                   munched$x, munched$y, id = munched$id,
                                   default.units = "native",
                                   gp = grid::gpar(
+                                    # NB: Not sure about the use of scales here... but it's imported by ggplot2 so no worries
                                     fill = scales::alpha(aes$fill, aes$alpha),
                                     col = aes$colour,
-                                    lwd = aes$size * .pt,
+                                    lwd = aes$linewidth * .pt,
                                     lty = aes$linetype)
                                 )
                               }
@@ -241,7 +243,7 @@ GeomFlame <- ggplot2::ggproto("GeomFlame", ggplot2::Geom,
 #' specification, e.g. \code{borders()}.
 #' @param na.rm If \code{FALSE} (the default), removes missing values with
 #' a warning. If \code{TRUE} silently removes missing values.
-#' @param ... other arguments passed on to \code{\link{layer}}. These are
+#' @param ... other arguments passed on to \code{\link[ggplot2]{layer}}. These are
 #' often aesthetics, used to set an aesthetic to a fixed value, like
 #' \code{color = "red"} or \code{size = 3}. They may also be parameters
 #' to the paired geom/stat.

@@ -20,6 +20,7 @@ detect_event(
   protoEvents = FALSE,
   categories = FALSE,
   roundRes = 4,
+  returnDF = TRUE,
   ...
 )
 }
@@ -35,12 +36,14 @@ daily threshold above which events may be detected. Data of the appropriate
 format are created by the function \code{\link{ts2clm}}, but your own data
 can be supplied if they meet the criteria specified by \code{\link{ts2clm}}.
 If the column names of \code{data} match those outlined here, the following
-four arguments may be ignored.}
+four arguments may be ignored. Note that it is also possible to provide hourly
+data in the \code{x} column as class \code{POSIXct}.}
 
 \item{x}{This column is expected to contain a vector of dates as per the
 specification of \code{\link{ts2clm}}. If a column headed \code{t} is present in
 the dataframe, this argument may be omitted; otherwise, specify the name of
-the column with dates here.}
+the column with dates here. Note that it is also possible to provide hourly
+data as class \code{POSIXct}.}
 
 \item{y}{This is a column containing the measurement variable. If the column
 name differs from the default (i.e. \code{temp}), specify the name here.}
@@ -72,7 +75,7 @@ occur before/after a short gap as specified by \code{maxGap}. The default
 is \code{TRUE}.}
 
 \item{maxGap}{The maximum length of gap allowed for the joining of MHWs. The
-default is \code{2} days.}
+default is \code{2} time steps.}
 
 \item{maxGap2}{The maximum gap length after applying both thresholds.
 By default \code{maxGap2 = maxGap} and is ignored if \code{threshClim2} has not
@@ -88,32 +91,40 @@ in \code{\link{ts2clm}} by setting \code{pctile = 10} (see example below).
 Any value may be used, but this is the setting used for the calculation of
 MCSs in Schlegel et al. (2017a).}
 
-\item{protoEvents}{Boolean specifying whether the full time series must be
-returned as a long table, together with columns indicating whether or not the
-threshold criterion (\code{threshCriterion}) and duration criterion (\code{durationCriterion})
-have been exceeded, a column showing if a heatwave is present (i.e. both
-\code{threshCriterion} and \code{durationCriterion} \code{TRUE}), and a
-sequential number uniquely identifying the detected event. In this case,
-the heatwave metrics will not be reported. The default is \code{FALSE}.}
+\item{protoEvents}{The default, \code{protoEvents = FALSE}, will return the full
+output comprised of a list of two data frames, one with the \code{climatology}
+and the other with the \code{event} metrics. See \strong{Value} below.
+If \code{protoEvents = TRUE}, the output will contain the original time series
+together with columns indicating if the threshold criterion
+(\code{threshCriterion}) and duration criterion (\code{durationCriterion})
+have been exceeded, a column showing if a heatwave is present
+(i.e. both \code{threshCriterion} and \code{durationCriterion}
+\code{TRUE}), and a sequential number uniquely identifying the detected event(s);
+heatwave metrics will not be reported in the \code{event} dataframe. Note also that
+if \code{protoEvents = TRUE} it will ignore whatever the user provides to the
+\code{categories} argument and anything else passed to \code{...}.}
 
 \item{categories}{Rather than using \code{\link{category}} as a separate step to determine
 the categories of the detected MHWs, one may choose to set this argument to \code{TRUE}.
 One may pass the same arguments used in the \code{\link{category}} function to this function
 to affect the output. Note that the default behaviour of \code{\link{category}} is to
 return the event data only. To return the same list structure that \code{\link{detect_event}}
-outputs by default, use \code{climatology = TRUE}.}
+outputs by default, add the argument \code{climatology = TRUE}.}
 
 \item{roundRes}{This argument allows the user to choose how many decimal places
 the MHW metric outputs will be rounded to. Default is 4. To
 prevent rounding set \code{roundRes = FALSE}. This argument may only be given
 numeric values or FALSE.}
 
+\item{returnDF}{The default (\code{TRUE}) tells the function to return the results as
+type \code{data.frame}. \code{FALSE} will return the results as a \code{data.table}.}
+
 \item{...}{Other arguments that will be passed internally to \code{\link{category}}
 when \code{categories = TRUE}. See the documentation for \code{\link{category}} for the
 list of possible arguments.}
 }
 \value{
-The function will return a list of two tibbles (see the \code{tidyverse}),
+The function will return a list of two data.frames,
 \code{climatology} and \code{event}, which are, surprisingly, the climatology
 and event results, respectively. The climatology contains the full time series of
 daily temperatures, as well as the the seasonal climatology, the threshold
@@ -154,9 +165,9 @@ The \code{event} results are summarised using a range of event metrics:
   \item{intensity_cumulative}{Cumulative intensity [deg. C x days].}
   \item{rate_onset}{Onset rate of event [deg. C / day].}
   \item{rate_decline}{Decline rate of event [deg. C / day].}
-  \item{event_name}{The name of the event. Generated from the \code{\link{name}}
+  \item{event_name}{The name of the event. Generated from the \code{name}
   value provided and the year of the \code{date_peak} of
-  the event. If no \code{\link{name}} value is provided the default "Event" is used.
+  the event. If no \code{name} value is provided the default "Event" is used.
   As proposed in Hobday et al. (2018), \code{Moderate} events are not given a name
   so as to prevent multiple repeat names within the same year. If two or more events
   ranked greater than Moderate are reported within the same year, they will be
@@ -239,6 +250,7 @@ of our preparation of Schlegel et al. (2017), wherein the cold events
 receive a brief overview.
 }
 \examples{
+data.table::setDTthreads(threads = 1)
 res_clim <- ts2clm(sst_WA, climatologyPeriod = c("1983-01-01", "2012-12-31"))
 out <- detect_event(res_clim)
 # show a portion of the climatology:

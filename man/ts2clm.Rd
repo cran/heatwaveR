@@ -9,7 +9,6 @@ ts2clm(
   x = t,
   y = temp,
   climatologyPeriod,
-  robust = FALSE,
   maxPadLength = FALSE,
   windowHalfWidth = 5,
   pctile = 90,
@@ -17,7 +16,8 @@ ts2clm(
   smoothPercentileWidth = 31,
   clmOnly = FALSE,
   var = FALSE,
-  roundClm = 4
+  roundClm = 4,
+  returnDF = TRUE
 )
 }
 \arguments{
@@ -25,7 +25,9 @@ ts2clm(
 the arguments \code{x} and \code{y}; see immediately below), the data set is
 expected to have the headers \code{t} and \code{temp}. The \code{t} column is a
 vector of dates of class \code{Date}, while \code{temp} is the measured variable
-(by default it is assumed to be temperature).}
+(by default it is assumed to be temperature). Note that one may also provide
+hourly time series with the class \code{POSIXct}, but these values must be
+in even hourly steps (e.g. 2012-01-22 23:00:00 not 2012-01-22 23:01:33).}
 
 \item{x}{This column is expected to contain a vector of dates. If a column
 headed \code{t} is present in the dataframe, this argument may be omitted;
@@ -38,23 +40,23 @@ name differs from the default (i.e. \code{temp}), specify the name here.}
 (see example below). The first value should be the chosen date for the start of
 the climatology period, and the second value the end date of said period. This
 chosen period (preferably 30 years in length) is then used to calculate the
-seasonal cycle and the extreme value threshold.}
-
-\item{robust}{This argument has been deprecated and no longer has affects how
-the function operates.}
+seasonal cycle and the extreme value threshold. Note that these values are
+always provided as dates, even if hourly data are being input into the function.}
 
 \item{maxPadLength}{Specifies the maximum length of days over which to
 interpolate (pad) missing data (specified as \code{NA}) in the input
 temperature time series; i.e., any consecutive blocks of NAs with length
 greater than \code{maxPadLength} will be left as \code{NA}. The default is
 \code{FALSE}. Set as an integer to interpolate. Setting \code{maxPadLength}
-to \code{TRUE} will return an error.}
+to \code{TRUE} will return an error. Note that this will be the number of hours
+over which to interpolate if an hourly time series is provided.}
 
 \item{windowHalfWidth}{Width of sliding window about day-of-year (to one
 side of the center day-of-year) used for the pooling of values and
 calculation of climatology and threshold percentile. Default is \code{5}
 days, which gives a window width of 11 days centred on the 6th day of the
-series of 11 days.}
+series of 11 days. Note that this will be the number of hours
+over which to smooth if an hourly time series is provided.}
 
 \item{pctile}{Threshold percentile (\%) for detection of events (MHWs).
 Default is \code{90}th percentile. Should the intent be to use these
@@ -65,7 +67,7 @@ climatology and threshold percentile time series with a moving average of
 \code{smoothPercentileWidth}. Default is \code{TRUE}.}
 
 \item{smoothPercentileWidth}{Full width of moving average window for smoothing
-climatology and threshold. The default is \code{31} days.}
+climatology and threshold. The default is \code{31}.}
 
 \item{clmOnly}{Choose to calculate and return only the climatologies.
 The default is \code{FALSE}.}
@@ -81,11 +83,14 @@ researchers use it and so it is generally regarded now as unnecessary.}
 the \code{seas} and \code{thresh} outputs will be rounded to. Default is 4. To
 prevent rounding set \code{roundClm = FALSE}. This argument may only be given
 numeric values or FALSE.}
+
+\item{returnDF}{The default (\code{TRUE}) tells the function to return the results as
+type \code{data.frame}. \code{FALSE} will return the results as a \code{data.table}.}
 }
 \value{
 The function will return a tibble (see the \code{tidyverse}) with the
 input time series and the newly calculated climatology. The climatology contains
-the seasonal climatology and the threshold for calculating MHWs. The software was
+the daily climatology and the threshold for calculating MHWs. The software was
 designed for creating climatologies of daily temperatures, and the units
 specified below reflect that intended purpose. However, various other kinds
 of climatologies may be created, and if that is the case, the appropriate
@@ -98,11 +103,11 @@ units need to be determined by the user.
   \item{temp}{The measurement vector as per the the original \code{data} supplied
   to the function. If a different column was given to the \code{y} argument that
   will be shown here.}
-  \item{seas}{Climatological seasonal cycle [deg. C].}
-  \item{thresh}{Seasonally varying threshold (e.g., 90th
+  \item{seas}{Daily climatological cycle [deg. C].}
+  \item{thresh}{Daily varying threshold (e.g., 90th
   percentile) [deg. C]. This is used in \code{\link{detect_event}} for the
   detection/calculation of events (MHWs).}
-  \item{var}{Seasonally varying variance (standard deviation) [deg. C]. This
+  \item{var}{Daily varying variance (standard deviation) [deg. C]. This
   column is not returned if \code{var = FALSE} (default).}
 Should \code{clmOnly} be enabled, only the 365 or 366 day climatology will be
 returned.
@@ -119,21 +124,24 @@ daily values with few missing values. Time ranges which start and end
 part-way through the calendar year are supported.
 \item It is recommended that a period of at least 30 years is specified in
 order to produce a climatology that smooths out any decadal thermal
-periodicities that may be present. It is further advised that full the start
-and end dates for the climatology period result in full years, e.g.
-"1982-01-01" to "2011-12-31" or "1982-07-01" to "2012-06-30"; if not, this
-may result in an unequal weighting of data belonging with certain months
-within a time series. A daily climatology will be created; that is, the
-climatology will be comprised of one mean temperature for each day of the
-year (365 or 366 days, depending on how leap years are dealt with), and the
-mean will be based on a sample size that is a function of the length of time
-determined by the start and end values given to \code{climatologyPeriod} and
-the width of the sliding window specified in \code{windowHalfWidth}.
+periodicities that may be present. When calculated over at least 30 years of
+data, such a climatology is called a 'climatological normal.' It is further
+advised that full the start and end dates for the climatology period result
+in full years, e.g. "1982-01-01" to "2011-12-31" or "1982-07-01" to
+"2012-06-30"; if not, this may result in an unequal weighting of data
+belonging with certain months within a time series. A daily climatology will
+be created; that is, the climatology will be comprised of one mean
+temperature for each day of the year (365 or 366 days, depending on how
+leap years are dealt with), and the mean will be based on a sample size that
+is a function of the length of time determined by the start and end values
+given to \code{climatologyPeriod} and the width of the sliding window
+specified in \code{windowHalfWidth}.
 \item This function supports leap years. This is done by ignoring Feb 29s
-for the initial calculation of the climatology and threshold. The values for
-Feb 29 are then linearly interpolated from the values for Feb 28 and Mar 1.
-\item Previous versions of \code{ts2clm()} tested to see if some rows
-are duplicated, or if replicate temperature readings are present per day, but
+for the initial calculation of the climatology and threshold. The values
+for Feb 29 are then linearly interpolated from the values for Feb 28 and
+Mar 1.
+\item Previous versions of \code{ts2clm()} tested to see if some rows are
+duplicated, or if replicate temperature readings are present per day, but
 this has now been disabled. Should the user be concerned about such repeated
 measurements, we suggest that the necessary checks and fixes are implemented
 prior to feeding the time series to \code{ts2clm()}.

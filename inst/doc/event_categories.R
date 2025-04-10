@@ -12,7 +12,7 @@ library(heatwaveR)
 
 # Calculate events
 ts <- ts2clm(sst_WA, climatologyPeriod = c("1982-01-01", "2011-12-31"))
-MHW <- detect_event(ts)
+MHW <- detect_event(ts) 
 MHW_cat <- category(MHW, S = TRUE, name = "WA")
 
 # Look at the top few events
@@ -22,6 +22,33 @@ tail(MHW_cat)
 res_Med <- detect_event(ts2clm(sst_Med, climatologyPeriod = c("1982-01-01", "2011-12-31")))
 res_Med_cat <- category(res_Med, S = FALSE, name = "Med")
 tail(res_Med_cat)
+
+## -----------------------------------------------------------------------------
+# Add lon/lat to the three default time series
+ts_WA <- sst_WA |> mutate(site = "WA", lon = 112.625, lat = -29.375)
+ts_NW_Atl <- sst_NW_Atl |> mutate(site = "NW_Atl", lon = -66.875, lat = 43.125)
+ts_Med <- sst_Med |> mutate(site = "Med", lon = 9.125, lat = 43.625)
+ts_ALL <- rbind(ts_WA, ts_NW_Atl, ts_Med)
+
+# Calculate MHW categories by site
+MHW_cat_ALL <- ts_ALL |> 
+  group_by(site) |> 
+  group_modify(~ {
+    .x |> 
+      ts2clm(climatologyPeriod = c("1982-01-01", "2011-12-31")) |> 
+      detect_event() |> 
+      category(season = "peak", lat_col = TRUE)
+    }) |> 
+  # Correct event names by site
+  mutate(event_name = case_when(!is.na(event_name) ~ stringr::str_replace(event_name, "Event", site)))
+
+# View results
+MHW_cat_ALL |> 
+  arrange(-duration) |> 
+  filter(!is.na(event_name)) |> 
+  group_by(site) |> 
+  group_modify(~ head(.x, 2L)) |> 
+  dplyr::select(site:category, duration, season)
 
 ## ----fig-example-1, echo = TRUE, eval = TRUE----------------------------------
 event_line(MHW, spread = 100, start_date = "2010-11-01", end_date = "2011-06-30", category = TRUE)

@@ -1,11 +1,9 @@
 #' Calculate yearly means for event metrics.
 #'
-#' @importFrom dplyr %>%
-#'
 #' @param data Accepts the data returned by the \code{\link{detect_event}} function.
 #' @param x This column is expected to contain a vector of dates as per the
 #' specification of \code{ts2clm}. If a column headed \code{t} is present in
-#' the dataframe, this argument may be ommitted; otherwise, specify the name of
+#' the dataframe, this argument may be omitted; otherwise, specify the name of
 #' the column with dates here.
 #' @param y This is a column containing the measurement variable. If the column
 #' name differs from the default (i.e. \code{temp}), specify the name here.
@@ -13,10 +11,12 @@
 #' the report to contain NAs for any years in which no events were detected
 #' (except for \code{count}, which will be zero in those years), while \code{partial}
 #' reports only the years wherein events were detected. The default is \code{full}.
+#' @param returnDF The default (\code{TRUE}) tells the function to return the results as
+#' type \code{data.frame}. \code{FALSE} will return the results as a \code{data.table}.
 #'
 #' @details
 #' This function needs to be provided with the full output from the \code{detect_event}
-#' or \code{exceedance} functions. Note that the yearly averages are calculted only for
+#' or \code{exceedance} functions. Note that the yearly averages are calculated only for
 #' complete years (i.e. years that start/end part-way through the year at the beginning
 #' or end of the original time series are removed from the calculations).
 #'
@@ -82,74 +82,97 @@
 block_average <- function(data,
                           x = t,
                           y = temp,
-                          report = "full") {
+                          report = "full",
+                          returnDF = TRUE) {
 
   if("climatology" %in% names(data)) {
-  clim <- data$climatology
-  ts_x <- eval(substitute(x), data$climatology)
-  ts_y <- eval(substitute(y), data$climatology)
-  event <- data$event
+    clim <- data$climatology
+    ts_x <- eval(substitute(x), data$climatology)
+    ts_y <- eval(substitute(y), data$climatology)
+    event <- data$event
   } else if("threshold" %in% names(data)) {
     clim <- data$threshold
     ts_x <- eval(substitute(x), data$threshold)
     ts_y <- eval(substitute(y), data$threshold)
     event <- data$exceedance
-    } else {
-      stop("Please ensure you are providing this function with the output of either detect_event() or exceedance().")
-    }
+  } else {
+    stop("Please ensure you are providing this function with the output of either detect_event() or exceedance().")
+  }
 
   clim$t <- ts_x
   clim$temp <- ts_y
+  event$year <- as.numeric(format(event$date_start, "%Y"))
 
   year <- temp <- date_start <- temp_mean <- temp_min <- temp_max <- NULL
 
-  temp_yr <- clim %>%
-    dplyr::group_by(year = lubridate::year(t)) %>%
-    dplyr::summarise()
+  temp_yr <- data.frame(year = as.numeric(base::unique(format(clim$t, "%Y"))))
 
   duration <- duration_max <- count <- intensity_mean <- intensity_max <- intensity_var <- intensity_cumulative <-
     intensity_mean_relThresh <- intensity_max_relThresh <- intensity_var_relThresh <-
     intensity_cumulative_relThresh <- intensity_mean_abs <- intensity_max_abs <- intensity_var_abs <-
     intensity_cumulative_abs <- rate_onset <- rate_decline <- total_days <- total_icum <-
-    duration_mean <- intensity_max_mean <- intensity_cumulative_mean <- NULL
+    duration_mean <- intensity_max_mean <- intensity_cumulative_mean <- intensity_cum_abs <-  NULL
 
-  suppressWarnings(
-    event_block <- event %>%
-      dplyr::group_by(year = lubridate::year(date_start)) %>%
-      dplyr::summarise(count = length(duration),
-                       duration_mean = mean(duration, na.rm = T),
-                       duration_max = max(duration, na.rm = T),
-                       intensity_mean = mean(intensity_mean, na.rm = T),
-                       intensity_max_mean = mean(intensity_max, na.rm = T),
-                       intensity_max_max = max(intensity_max, na.rm = T),
-                       intensity_var = mean(intensity_var, na.rm = T),
-                       intensity_cumulative_mean = mean(intensity_cumulative, na.rm = T),
-                       intensity_mean_relThresh = mean(intensity_mean_relThresh, na.rm = T),
-                       intensity_max_relThresh = mean(intensity_max_relThresh, na.rm = T),
-                       intensity_var_relThresh = mean(intensity_var_relThresh, na.rm = T),
-                       intensity_cumulative_relThresh = mean(intensity_cumulative_relThresh, na.rm = T),
-                       intensity_mean_abs = mean(intensity_mean_abs, na.rm = T),
-                       intensity_max_abs = mean(intensity_max_abs, na.rm = T),
-                       intensity_var_abs = mean(intensity_var_abs, na.rm = T),
-                       intensity_cumulative_abs = mean(intensity_cumulative_abs, na.rm = T),
-                       rate_onset = mean(rate_onset, na.rm = T),
-                       rate_decline = mean(rate_decline, na.rm = T),
-                       total_days = sum(duration, na.rm = T),
-                       total_icum = sum(intensity_cumulative, na.rm = T)) %>%
-      dplyr::rename(duration = duration_mean,
-                    intensity_max = intensity_max_mean,
-                    intensity_cumulative = intensity_cumulative_mean)
-  )
+  event_block <- data.table::setDT(event)
+  if ("intensity_cumulative_relThresh" %in% names(event_block)) {
+    event_block <- event_block[, list(
+      count = length(duration),
+      duration_mean = mean(duration, na.rm = T),
+      duration_max = max(duration, na.rm = T),
+      intensity_mean = mean(intensity_mean, na.rm = T),
+      intensity_max_mean = mean(intensity_max, na.rm = T),
+      intensity_max_max = max(intensity_max, na.rm = T),
+      intensity_var = mean(intensity_var, na.rm = T),
+      intensity_cumulative_mean = mean(intensity_cumulative, na.rm = T),
+      intensity_mean_relThresh = mean(intensity_mean_relThresh, na.rm = T),
+      intensity_max_relThresh = mean(intensity_max_relThresh, na.rm = T),
+      intensity_var_relThresh = mean(intensity_var_relThresh, na.rm = T),
+      intensity_cumulative_relThresh = mean(intensity_cumulative_relThresh, na.rm = T),
+      intensity_mean_abs = mean(intensity_mean_abs, na.rm = T),
+      intensity_max_abs = mean(intensity_max_abs, na.rm = T),
+      intensity_var_abs = mean(intensity_var_abs, na.rm = T),
+      intensity_cumulative_abs = mean(intensity_cumulative_abs, na.rm = T),
+      rate_onset = mean(rate_onset, na.rm = T),
+      rate_decline = mean(rate_decline, na.rm = T),
+      total_days = sum(duration, na.rm = T),
+      total_icum = sum(intensity_cumulative, na.rm = T)
+    ), by = list(year)]
+
+  } else {
+    event_block <-  event_block[, list(
+      count = length(duration),
+      duration_mean = mean(duration, na.rm = T),
+      duration_max = max(duration, na.rm = T),
+      intensity_mean = mean(intensity_mean, na.rm = T),
+      intensity_max_mean = mean(intensity_max, na.rm = T),
+      intensity_max_max = max(intensity_max, na.rm = T),
+      intensity_var = mean(intensity_var, na.rm = T),
+      intensity_cumulative_mean = mean(intensity_cumulative, na.rm = T),
+      intensity_mean_abs = mean(intensity_mean_abs, na.rm = T),
+      intensity_max_abs = mean(intensity_max_abs, na.rm = T),
+      intensity_var_abs = mean(intensity_var_abs, na.rm = T),
+      intensity_cum_abs = mean(intensity_cum_abs, na.rm = T),
+      rate_onset = mean(rate_onset, na.rm = T),
+      rate_decline = mean(rate_decline, na.rm = T),
+      total_days = sum(duration, na.rm = T),
+      total_icum = sum(intensity_cumulative, na.rm = T)
+    ), by = list(year)]
+  }
+
+  colnames(event_block)[c(3, 6, 9)] <- c("duration", "intensity_max", "intensity_cumulative")
 
   if (report == "full") {
-    event_block <- dplyr::left_join(temp_yr, event_block, by = "year")
-    event_block$count[is.na(event_block$count)] <- 0
+    event_block <- base::merge(temp_yr, event_block, by = "year", all.x = TRUE)
   } else if (report == "partial") {
-    event_block <-
-      dplyr::inner_join(temp_yr, event_block, by = "year")
+    event_block <- base::merge(temp_yr, event_block, by = "year", all.y = TRUE)
   } else stop("Oops, 'report' must be either 'full' or 'partial'!")
 
   event_block$count[is.na(event_block$count)] <- 0
 
+  if(returnDF) {
+    data.table::setDF(event_block)
+  } else {
+    data.table::setDT(event_block)
+  }
   return(event_block)
 }
